@@ -141,6 +141,7 @@ export class DeliveryService {
 
       await repo.transition(orderId, ["processing"], "delivery_failed", `Falha na entrega: ${message}`, triggeredBy);
       await repo.updateOrder(orderId, { last_delivery_error: message, next_delivery_attempt_at: null });
+      if (order) await notifier.deliveryFailed?.(order, message).catch(() => {});
       return { status: "failed", error: message };
     }
   }

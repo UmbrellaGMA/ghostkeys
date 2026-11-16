@@ -9,6 +9,9 @@ import { getCatalogSync, getDeliveryService, getOrderService } from "@/services/
 import { CheckoutError } from "@/services/OrderService";
 import { calculateSalePrice } from "@/services/PricingService";
 import type { StoreSettings } from "@/types";
+import { z } from "zod";
+import { PUSH_EVENT_KEYS, type PushEventKey } from "@/lib/push-events";
+import { pushConfigured, sendToSubscriptions } from "@/services/push/AdminPushNotifier";
 
 export type ActionResult = { ok: boolean; message: string };
 
@@ -350,5 +353,69 @@ export async function saveSettingsAction(input: unknown): Promise<ActionResult> 
     }
     revalidatePath("/", "layout");
     return msg;
+  });
+}
+
+// ───────────────────────── Notificações push (app do admin) ─────────────────────────
+
+const pushSubscriptionSchema = z.object({
+  endpoint: z.string().url().startsWith("https://").max(1000),
+  keys: z.object({ p256dh: z.string().min(10).max(200), auth: z.string().min(8).max(100) }),
+  label: z.string().trim().max(80).optional(),
+});
+const pushEventsSchema = z.array(z.enum(PUSH_EVENT_KEYS as [PushEventKey, ...PushEventKey[]])).max(PUSH_EVENT_KEYS.length);
+
+export async function subscribePushAction(input: unknown): Promise<ActionResult> {
+  return run(async (adminId) => {
+    if (!pushConfigured()) throw new Error("Notificações não configuradas no servidor (VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY).");
+    const sub = pushSubscriptionSchema.parse(input);
+    const db = createAdminClient();
+    const { data: existing } = await db.from("push_subscriptions").select("id").eq("endpoint", sub.endpoint).maybeSingle();
+    const row = { user_id: adminId, endpoint: sub.endpoint, p256dh: sub.keys.p256dh, auth: sub.keys.auth, device_label: sub.label || null, failures: 0 };
+    const { error } = existing
+      ? await db.from("push_subscriptions").update(row).eq("id", existing.id)
+      : await db.from("push_subscriptions").insert(row);
+    if (error) throw error;
+    revalidatePath("/admin/notificacoes");
+    return "Notificações ativadas neste aparelho";
+  });
+}
+
+export async function updatePushEventsAction(endpoint: string, events: unknown): Promise<ActionResult> {
+  return run(async (adminId) => {
+    const list = pushEventsSchema.parse(events);
+    const { error } = await createAdminClient().from("push_subscriptions").update({ events: list }).eq("endpoint", endpoint).eq("user_id", adminId);
+    if (error) throw error;
+    revalidatePath("/admin/notificacoes");
+    return "Preferências salvas";
+  });
+}
+
+export async function removePushAction(idOrEndpoint: { id?: string; endpoint?: string }): Promise<ActionResult> {
+  return run(async (adminId) => {
+    const q = createAdminClient().from("push_subscriptions").delete().eq("user_id", adminId);
+    const { error } = idOrEndpoint.id ? await q.eq("id", idOrEndpoint.id) : await q.eq("endpoint", idOrEndpoint.endpoint ?? "");
+    if (error) throw error;
+    revalidatePath("/admin/notificacoes");
+    return "Aparelho removido";
+  });
+}
+
+export async function testPushAction(endpoint?: string): Promise<ActionResult> {
+  return run(async (adminId) => {
+    if (!(await rateLimit(`push-test:${adminId}`, 10, 300))) throw new Error("Muitos testes seguidos. Aguarde alguns minutos.");
+    let q = createAdminClient().from("push_subscriptions").select("id, endpoint, p256dh, auth, failures").eq("user_id", adminId);
+    if (endpoint) q = q.eq("endpoint", endpoint);
+    const { data, error } = await q;
+    if (error) throw error;
+    if (!data?.length) throw new Error("Nenhum aparelho inscrito. Ative as notificações primeiro.");
+    const r = await sendToSubscriptions(data, {
+      title: "🔔 GhostKeys",
+      body: "Notificações funcionando! Você será avisado sobre PIX, pagamentos e entregas.",
+      url: "/admin/notificacoes",
+      tag: "test",
+    });
+    if (!r.sent) throw new Error("Não foi possível entregar a notificação. Desative e ative de novo neste aparelho.");
+    return `Notificação de teste enviada para ${r.sent} aparelho(s)`;
   });
 }

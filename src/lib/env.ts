@@ -66,6 +66,7 @@ export function integrationsStatus(): IntegrationStatus[] {
     check("Criptografia das keys", ["KEYS_ENCRYPTION_SECRET"], () => "AES-256-GCM"),
     check("E-mail (Resend)", ["RESEND_API_KEY", "EMAIL_FROM"], (v) => (v.EMAIL_FROM ? `Remetente: ${v.EMAIL_FROM}` : "Não configurado")),
     check("Agendador (cron)", ["CRON_SECRET"], () => "Endpoints /api/cron/*"),
+    check("Notificações push (app do admin)", ["VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY"], () => "Ative em Painel › Notificações"),
   ];
 }
 

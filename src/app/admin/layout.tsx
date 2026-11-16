@@ -1,15 +1,25 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import { BarChart3, BookOpen, FileText, Gamepad2, Layers, Package, PlusCircle, Settings, Store, Tag, Users } from "lucide-react";
+import { BarChart3, Bell, BookOpen, FileText, Gamepad2, Layers, Package, PlusCircle, Settings, Store, Tag, Users } from "lucide-react";
 import { requireAdminPage } from "@/lib/auth";
 import { LogoMark } from "@/components/ui/Logo";
 import { SignOutButton } from "@/components/account/SignOutButton";
 
-export const metadata = { title: "Painel administrativo", robots: { index: false, follow: false } };
+export const metadata: Metadata = {
+  title: "Painel administrativo",
+  robots: { index: false, follow: false },
+  // App instalável (iPhone: Safari › Compartilhar › Adicionar à Tela de Início) com notificações push
+  manifest: "/admin.webmanifest",
+  applicationName: "GK Admin",
+  appleWebApp: { capable: true, title: "GK Admin", statusBarStyle: "black" },
+  icons: { apple: "/pwa/apple-touch-icon.png" },
+};
 export const dynamic = "force-dynamic";
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: BarChart3 },
   { href: "/admin/pedidos", label: "Pedidos", icon: Package },
+  { href: "/admin/notificacoes", label: "Notificações", icon: Bell },
   { href: "/admin/produtos", label: "Produtos", icon: Gamepad2 },
   { href: "/admin/produtos/importar", label: "Adicionar jogos", icon: PlusCircle },
   { href: "/admin/categorias", label: "Categorias", icon: Layers },

@@ -1,0 +1,18 @@
+{
+  "id": "/admin",
+  "name": "GhostKeys Admin",
+  "short_name": "GK Admin",
+  "description": "Painel da loja GhostKeys com notificações de pedidos, PIX e entregas.",
+  "lang": "pt-BR",
+  "start_url": "/admin",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050506",
+  "theme_color": "#050506",
+  "icons": [
+    { "src": "/pwa/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/pwa/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/pwa/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -211,6 +211,10 @@ ok("cliente NÃO edita tutoriais", (await as("authenticated", A, () => err(db.qu
 ok("apenas um tutorial padrão", (await err(db.query(`insert into activation_tutorials(platform,title,is_default) values ('Epic','Epic',true)`))) !== null);
 ok("plataforma única (sem diferenciar maiúsculas)", (await err(db.query(`insert into activation_tutorials(platform,title) values ('steam ','Outro')`))) !== null);
 await db.exec(`insert into activation_tutorials(platform,title,active) values ('GOG','GOG oculto',false)`);
+console.log("Notificações push");
+ok("cliente NÃO lê aparelhos inscritos", (await as("authenticated", A, () => err(db.query(`select * from push_subscriptions`)))) !== null);
+ok("admin logado também NÃO lê direto (somente servidor)", (await as("authenticated", C, () => err(db.query(`select * from push_subscriptions`)))) !== null);
+ok("endpoint precisa ser https", (await err(db.query(`insert into push_subscriptions(user_id,endpoint,p256dh,auth) values ('${C}','http://x','a','b')`))) !== null);
 ok("tutorial oculto não aparece para visitante", (await as("anon", null, () => db.query(`select id from activation_tutorials where platform='GOG'`))).rows.length === 0);
 
 console.log(`\n${pass} passaram, ${fail} falharam`);

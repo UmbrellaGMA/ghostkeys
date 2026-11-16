@@ -275,6 +275,7 @@ export class OrderService {
       };
       await repo.updatePayment(payment.id, patch);
       await repo.updateOrder(orderId, { payment_method: "pix" });
+      this.deps.notifier.pixGenerated?.({ ...order, payment_method: "pix" }).catch(() => {});
       return { ...payment, ...patch } as Payment;
     } catch (e) {
       await repo.updatePayment(payment.id, { status: "error", status_detail: (e as Error).message.slice(0, 200) });
