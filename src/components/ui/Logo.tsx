@@ -1,0 +1,23 @@
+import Link from "next/link";
+
+const GHOST_PATH =
+  "M 451.27 356.18 Q 453.77 353.69 457.04 350.08 Q 477.76 327.28 469.73 297.34 Q 469.04 294.79 467.84 292.56 Q 460.10 285.06 451.05 290.46 C 443.98 294.69 442.19 300.42 439.05 307.23 C 431.74 301.64 428.84 291.98 428.88 282.96 C 428.96 268.77 436.43 255.76 447.87 247.60 C 451.05 245.33 454.21 243.27 457.86 241.02 C 456.44 208.40 475.77 175.72 505.49 163.06 Q 531.21 152.10 556.53 161.20 C 589.40 173.00 610.32 205.77 610.28 241.57 C 615.41 245.28 619.90 248.39 624.54 251.90 Q 634.71 259.60 636.57 272.45 C 638.20 283.79 634.45 294.98 621.65 298.47 C 621.44 284.31 606.48 281.89 598.18 290.89 C 591.53 305.43 583.50 319.24 573.70 329.98 C 562.20 342.57 546.76 353.54 529.83 357.84 C 526.58 358.67 523.49 358.94 520.42 358.45 C 520.53 357.79 521.38 356.05 522.83 352.64 C 524.57 348.57 528.20 333.89 520.30 334.12 Q 519.34 334.15 517.49 335.81 C 503.61 348.19 486.26 357.26 467.52 358.33 Q 458.30 358.86 451.27 356.18 Z M 590.13 200.10 Q 585.22 205.00 576.81 214.81 Q 576.44 215.23 554.56 241.40 C 559.53 249.88 568.93 259.20 579.32 252.54 Q 583.36 249.95 585.13 247.35 C 594.41 233.71 594.89 215.55 590.13 200.10 Z M 538.79 242.74 Q 504.84 225.69 485.89 216.04 C 483.95 215.05 482.71 217.69 482.84 219.24 C 484.09 234.86 493.50 256.87 510.95 260.60 Q 527.17 264.06 535.72 249.96 Q 538.17 245.93 538.79 242.74 Z";
+
+/** Fantasma da marca GhostKeys (ícone isolado). */
+export function LogoMark({ className = "size-8", color = "var(--color-accent)" }: { className?: string; color?: string }) {
+  return (
+    <svg viewBox="424 150 218 214" className={className} aria-hidden="true">
+      <path fill={color} d={GHOST_PATH} />
+    </svg>
+  );
+}
+
+/** Logo completa (fantasma + GHOSTKEYS). */
+export function Logo({ name = "GhostKeys", className = "h-8 sm:h-9" }: { name?: string; className?: string }) {
+  return (
+    <Link href="/" className="group flex shrink-0 items-center" aria-label={`${name} — página inicial`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo-ghostkeys.svg" alt={name} className={`${className} w-auto transition-transform duration-300 group-hover:scale-[1.03]`} />
+    </Link>
+  );
+}

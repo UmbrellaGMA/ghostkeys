@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+@theme {
+  /* GhostKeys: preto + roxo (#8804fa da logo) */
+  --color-bg: #050506;
+  --color-surface: #0d0d10;
+  --color-surface-2: #141418;
+  --color-surface-3: #1c1b22;
+  --color-line: #201f27;
+  --color-line-strong: #2e2c38;
+  --color-fg: #ecebf2;
+  --color-muted: #9a97a8;
+  --color-subtle: #66637a;
+  --color-accent: #8804fa;
+  --color-accent-strong: #6d00d4;
+  --color-accent-2: #b066ff;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-chakra), var(--font-inter), ui-sans-serif, sans-serif;
+
+  --animate-fade-up: fade-up 0.5s ease-out both;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes shimmer {
+    from { background-position: -400px 0; }
+    to { background-position: 400px 0; }
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  background: var(--color-bg);
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-accent) 45%, transparent);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+
+@utility container-page {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6;
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
+}
+@utility btn-primary {
+  @apply btn bg-accent text-white shadow-[0_8px_24px_-10px_var(--color-accent)] hover:bg-accent-strong hover:shadow-[0_10px_30px_-8px_var(--color-accent)];
+}
+@utility btn-secondary {
+  @apply btn border border-line-strong bg-surface-2 text-fg hover:border-accent/60 hover:bg-surface-3;
+}
+@utility btn-ghost {
+  @apply btn text-muted hover:bg-surface-2 hover:text-fg;
+}
+@utility btn-danger {
+  @apply btn border border-danger/40 bg-danger/10 text-red-300 hover:bg-danger/20;
+}
+@utility card {
+  @apply rounded-2xl border border-line bg-surface;
+}
+@utility input {
+  @apply w-full rounded-xl border border-line-strong bg-surface-2 px-3.5 py-2.5 text-sm text-fg placeholder:text-subtle outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/25;
+}
+@utility label {
+  @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted;
+}
+@utility badge {
+  @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide;
+}
+@utility skeleton {
+  @apply rounded-xl bg-surface-2;
+  background-image: linear-gradient(90deg, transparent 0, rgba(255, 255, 255, 0.04) 50%, transparent 100%);
+  background-size: 400px 100%;
+  animation: var(--animate-shimmer);
+}
+@utility section-title {
+  @apply font-display text-xl font-bold tracking-wide text-white sm:text-2xl;
+}
+
+@layer components {
+  .prose-store p {
+    @apply mb-3 text-sm leading-relaxed text-muted;
+  }
+  .prose-store h2 {
+    @apply mt-8 mb-3 font-display text-lg font-bold text-white;
+  }
+  .prose-store ul {
+    @apply mb-3 list-disc space-y-1 pl-5 text-sm text-muted;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
