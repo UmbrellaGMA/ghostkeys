@@ -27,7 +27,7 @@ export function ProductRail({
           </span>
           {title}
         </h2>
-        <Link href={href} className="flex items-center gap-1 text-sm font-semibold text-accent hover:text-accent-2">
+        <Link href={href} className="-my-2 flex items-center gap-1 py-2 text-sm font-semibold text-accent hover:text-accent-2">
           Ver todos <ArrowRight className="size-4" />
         </Link>
       </div>

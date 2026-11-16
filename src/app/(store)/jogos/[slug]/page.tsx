@@ -9,6 +9,7 @@ import { effectivePrice, listPrice } from "@/services/PricingService";
 import { GameImage } from "@/components/product/GameImage";
 import { PriceTag } from "@/components/product/PriceTag";
 import { AddToCartButton } from "@/components/product/AddToCartButton";
+import { MobileBuyBar } from "@/components/product/MobileBuyBar";
 import { ProductGrid } from "@/components/product/ProductCard";
 import { appUrl } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
@@ -61,6 +62,16 @@ export default async function ProductPage({ params }: Params) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
 
+      {/* Barra de compra fixa no celular (aparece quando a caixa de compra sai da tela) */}
+      {canBuy && (
+        <MobileBuyBar
+          price={price}
+          listPrice={lp}
+          maxQuantity={settings.max_quantity_per_item}
+          product={{ id: product.id, slug: product.slug, name: product.name, image_url: product.image_url, price_cents: price }}
+        />
+      )}
+
       {/* Banner de fundo */}
       <div className="relative h-[260px] overflow-hidden sm:h-[340px]">
         <GameImage src={product.background_url ?? product.image_url} alt="" priority sizes="100vw" className="scale-105 opacity-60 blur-[2px]" />
@@ -68,28 +79,28 @@ export default async function ProductPage({ params }: Params) {
       </div>
 
       <div className="container-page relative -mt-48 sm:-mt-60">
-        <nav className="mb-4 flex flex-wrap items-center gap-1 text-xs text-muted" aria-label="Trilha">
-          <Link href="/" className="hover:text-fg">Início</Link>
+        <nav className="mb-3 flex flex-wrap items-center gap-x-1 text-xs text-muted sm:mb-4" aria-label="Trilha">
+          <Link href="/" className="py-2 hover:text-fg">Início</Link>
           <ChevronRight className="size-3" />
-          <Link href="/jogos" className="hover:text-fg">Jogos</Link>
+          <Link href="/jogos" className="py-2 hover:text-fg">Jogos</Link>
           {category && (
             <>
               <ChevronRight className="size-3" />
-              <Link href={`/jogos?categoria=${category.slug}`} className="hover:text-fg">{category.name}</Link>
+              <Link href={`/jogos?categoria=${category.slug}`} className="py-2 hover:text-fg">{category.name}</Link>
             </>
           )}
           <ChevronRight className="size-3" />
-          <span className="text-fg">{product.name}</span>
+          <span className="line-clamp-1 text-fg">{product.name}</span>
         </nav>
 
-        <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
-          <div className="space-y-6">
+        <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_380px]">
+          <div className="space-y-4 sm:space-y-6 lg:col-start-1">
             <div className="relative aspect-[460/215] overflow-hidden rounded-3xl border border-line shadow-2xl">
               <GameImage src={product.image_url} alt={`Capa de ${product.name}`} priority sizes="(max-width: 1024px) 100vw, 60vw" />
             </div>
 
             <div>
-              <h1 className="font-display text-3xl font-bold text-white sm:text-4xl">{product.name}</h1>
+              <h1 className="font-display text-2xl font-bold leading-tight text-white sm:text-4xl">{product.name}</h1>
               <div className="mt-3 flex flex-wrap gap-2">
                 <span className="badge bg-surface-3 text-fg"><Monitor className="size-3" /> {product.platform}</span>
                 {category && <span className="badge bg-accent/15 text-accent">{category.name}</span>}
@@ -98,52 +109,11 @@ export default async function ProductPage({ params }: Params) {
                 ))}
               </div>
             </div>
-
-            <section className="card p-6">
-              <h2 className="mb-3 font-display text-lg font-bold text-white">Sobre o jogo</h2>
-              <p className="whitespace-pre-line text-sm leading-relaxed text-muted">{product.description ?? product.short_description ?? "Descrição não disponível."}</p>
-              <dl className="mt-5 grid gap-4 border-t border-line pt-5 text-sm sm:grid-cols-3">
-                {product.developer && (
-                  <div>
-                    <dt className="label">Desenvolvedora</dt>
-                    <dd className="flex items-center gap-1.5 text-fg"><Building2 className="size-4 text-subtle" /> {product.developer}</dd>
-                  </div>
-                )}
-                {product.publisher && (
-                  <div>
-                    <dt className="label">Publicadora</dt>
-                    <dd className="text-fg">{product.publisher}</dd>
-                  </div>
-                )}
-                {product.release_date && (
-                  <div>
-                    <dt className="label">Lançamento</dt>
-                    <dd className="flex items-center gap-1.5 text-fg"><CalendarDays className="size-4 text-subtle" /> {formatDate(product.release_date)}</dd>
-                  </div>
-                )}
-              </dl>
-            </section>
-
-            <section className="card p-6">
-              <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-bold text-white">
-                <KeyRound className="size-5 text-accent" /> Como ativar
-              </h2>
-              {tutorial ? (
-                <ActivationTutorial tutorial={tutorial} />
-              ) : settings.activation_instructions ? (
-                <p className="whitespace-pre-line text-sm leading-relaxed text-muted">{settings.activation_instructions}</p>
-              ) : (
-                <p className="text-sm text-muted">
-                  Após a aprovação do pagamento, a key fica disponível em <strong className="text-fg">Minha conta › Pedidos</strong>. As instruções de
-                  resgate acompanham a key. Em caso de dúvida, fale com o <Link href="/paginas/atendimento" className="text-accent hover:underline">atendimento</Link>.
-                </p>
-              )}
-            </section>
           </div>
 
           {/* Caixa de compra */}
-          <aside className="lg:sticky lg:top-40 lg:self-start">
-            <div className="card space-y-5 p-6 shadow-[0_30px_80px_-40px_rgba(136,4,250,0.5)]">
+          <aside id="buy-box" className="scroll-mt-24 lg:sticky lg:top-40 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
+            <div className="card space-y-5 p-5 sm:p-6 shadow-[0_30px_80px_-40px_rgba(136,4,250,0.5)]">
               <PriceTag price={price} listPrice={lp} size="lg" />
               {product.promo_ends_at && lp && (
                 <p className="text-xs text-warning">Oferta válida até {new Date(product.promo_ends_at).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</p>
@@ -212,6 +182,49 @@ export default async function ProductPage({ params }: Params) {
               </p>
             </div>
           </aside>
+
+          <div className="space-y-6 lg:col-start-1">
+            <section className="card p-6">
+              <h2 className="mb-3 font-display text-lg font-bold text-white">Sobre o jogo</h2>
+              <p className="whitespace-pre-line text-sm leading-relaxed text-muted">{product.description ?? product.short_description ?? "Descrição não disponível."}</p>
+              <dl className="mt-5 grid gap-4 border-t border-line pt-5 text-sm sm:grid-cols-3">
+                {product.developer && (
+                  <div>
+                    <dt className="label">Desenvolvedora</dt>
+                    <dd className="flex items-center gap-1.5 text-fg"><Building2 className="size-4 text-subtle" /> {product.developer}</dd>
+                  </div>
+                )}
+                {product.publisher && (
+                  <div>
+                    <dt className="label">Publicadora</dt>
+                    <dd className="text-fg">{product.publisher}</dd>
+                  </div>
+                )}
+                {product.release_date && (
+                  <div>
+                    <dt className="label">Lançamento</dt>
+                    <dd className="flex items-center gap-1.5 text-fg"><CalendarDays className="size-4 text-subtle" /> {formatDate(product.release_date)}</dd>
+                  </div>
+                )}
+              </dl>
+            </section>
+
+            <section className="card p-6">
+              <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-bold text-white">
+                <KeyRound className="size-5 text-accent" /> Como ativar
+              </h2>
+              {tutorial ? (
+                <ActivationTutorial tutorial={tutorial} />
+              ) : settings.activation_instructions ? (
+                <p className="whitespace-pre-line text-sm leading-relaxed text-muted">{settings.activation_instructions}</p>
+              ) : (
+                <p className="text-sm text-muted">
+                  Após a aprovação do pagamento, a key fica disponível em <strong className="text-fg">Minha conta › Pedidos</strong>. As instruções de
+                  resgate acompanham a key. Em caso de dúvida, fale com o <Link href="/paginas/atendimento" className="text-accent hover:underline">atendimento</Link>.
+                </p>
+              )}
+            </section>
+          </div>
         </div>
 
         {related.length > 0 && (
@@ -220,6 +233,8 @@ export default async function ProductPage({ params }: Params) {
             <ProductGrid products={related} maxQuantity={settings.max_quantity_per_item} />
           </section>
         )}
+        {/* Espaço para a barra de compra fixa no celular não cobrir o rodapé */}
+        {canBuy && <div className="h-20 lg:hidden" aria-hidden />}
       </div>
     </>
   );

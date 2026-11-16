@@ -6,6 +6,7 @@ import { formatBRL } from "@/lib/money";
 import { formatDateTime } from "@/lib/utils";
 import type { Order } from "@/types";
 import { AdminHeader, StatCard, Table } from "@/components/admin/AdminUI";
+import { OrderCards } from "@/components/admin/OrderCards";
 import { OrderStatusBadge } from "@/components/account/OrderStatusBadge";
 
 const PERIODS = { "7": "7 dias", "30": "30 dias", "90": "90 dias", "365": "12 meses" } as const;
@@ -49,7 +50,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
       />
       {error && <p className="mb-4 rounded-xl border border-danger/40 bg-danger/10 p-3 text-sm text-red-200">Erro ao carregar estatísticas: {error.message}</p>}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard label="Faturamento" value={formatBRL(s.revenue_cents ?? 0)} icon={DollarSign} hint={`Últimos ${PERIODS[periodo] ?? "30 dias"}`} />
         <StatCard label="Lucro estimado" value={formatBRL(profit)} icon={TrendingUp} tone="success" hint="Receita − custo congelado na venda" />
         <StatCard label="Vendas" value={s.sales_count ?? 0} icon={ShoppingBag} />
@@ -60,12 +61,14 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
         <StatCard label="Reembolsos" value={s.refunded ?? 0} icon={DollarSign} tone="danger" />
       </div>
 
-      <div className="mt-8 grid gap-6 xl:grid-cols-[1fr_360px]">
+      <div className="mt-6 grid gap-6 sm:mt-8 xl:grid-cols-[1fr_360px]">
         <section>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-display text-lg font-bold text-white">Últimas compras</h2>
-            <Link href="/admin/pedidos" className="text-sm text-accent hover:underline">Ver todos</Link>
+            <Link href="/admin/pedidos" className="-my-2 py-2 text-sm text-accent hover:underline">Ver todos</Link>
           </div>
+          <OrderCards orders={(recent ?? []) as Order[]} empty="Nenhum pedido ainda." />
+          <div className="hidden md:block">
           <Table>
             <thead>
               <tr><th>Pedido</th><th>Cliente</th><th>Data</th><th>Status</th><th className="text-right">Total</th></tr>
@@ -85,6 +88,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
               )}
             </tbody>
           </Table>
+          </div>
         </section>
         <section className="card h-fit p-5">
           <h2 className="mb-4 font-display text-lg font-bold text-white">Produtos mais vendidos</h2>

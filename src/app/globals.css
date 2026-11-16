@@ -41,6 +41,9 @@
 html {
   background: var(--color-bg);
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -48,6 +51,30 @@ body {
   color: var(--color-fg);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+/* iPhone: respeita o notch em paisagem (viewport-fit=cover) */
+body {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Toque: sem atraso de duplo toque em botões/links */
+a,
+button,
+summary,
+label,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+/* iOS dá zoom ao focar campos com fonte < 16px. Fora de @layer para valer sobre as utilities. */
+@media (max-width: 639px), (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([readonly]),
+  select,
+  textarea:not([readonly]) {
+    font-size: 16px;
+  }
 }
 
 ::selection {
@@ -63,7 +90,7 @@ body {
   @apply mx-auto w-full max-w-7xl px-4 sm:px-6;
 }
 @utility btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm sm:min-h-10 font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
 }
 @utility btn-primary {
   @apply btn bg-accent text-white shadow-[0_8px_24px_-10px_var(--color-accent)] hover:bg-accent-strong hover:shadow-[0_10px_30px_-8px_var(--color-accent)];
@@ -81,7 +108,7 @@ body {
   @apply rounded-2xl border border-line bg-surface;
 }
 @utility input {
-  @apply w-full rounded-xl border border-line-strong bg-surface-2 px-3.5 py-2.5 text-sm text-fg placeholder:text-subtle outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/25;
+  @apply w-full rounded-xl border border-line-strong bg-surface-2 px-3.5 py-3 text-sm sm:py-2.5 text-fg placeholder:text-subtle outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/25;
 }
 @utility label {
   @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted;

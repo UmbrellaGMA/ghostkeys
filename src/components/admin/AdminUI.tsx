@@ -3,12 +3,12 @@ import { cn } from "@/lib/utils";
 
 export function AdminHeader({ title, description, actions }: { title: string; description?: string; actions?: React.ReactNode }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
       <div>
         <h1 className="font-display text-2xl font-bold text-white sm:text-3xl">{title}</h1>
         {description && <p className="mt-1 text-sm text-muted">{description}</p>}
       </div>
-      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+      {actions && <div className="flex w-full flex-wrap gap-2 sm:w-auto">{actions}</div>}
     </div>
   );
 }
@@ -16,15 +16,15 @@ export function AdminHeader({ title, description, actions }: { title: string; de
 export function StatCard({ label, value, icon: Icon, tone = "accent", hint }: { label: string; value: string | number; icon: LucideIcon; tone?: "accent" | "success" | "warning" | "danger"; hint?: string }) {
   const tones = { accent: "text-accent bg-accent/15", success: "text-success bg-success/15", warning: "text-warning bg-warning/15", danger: "text-danger bg-danger/15" };
   return (
-    <div className="card p-5">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted">{label}</p>
-        <span className={cn("grid size-9 place-items-center rounded-lg", tones[tone])}>
+    <div className="card min-w-0 p-3.5 sm:p-5">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-xs leading-snug text-muted sm:text-sm">{label}</p>
+        <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg sm:size-9", tones[tone])}>
           <Icon className="size-4" />
         </span>
       </div>
-      <p className="mt-3 font-display text-2xl font-bold text-white">{value}</p>
-      {hint && <p className="mt-1 text-xs text-subtle">{hint}</p>}
+      <p className="mt-2 truncate font-display text-lg font-bold text-white sm:mt-3 sm:text-2xl">{value}</p>
+      {hint && <p className="mt-1 hidden text-xs text-subtle sm:block">{hint}</p>}
     </div>
   );
 }

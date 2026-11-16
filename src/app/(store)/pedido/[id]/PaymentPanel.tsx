@@ -210,9 +210,9 @@ export function PaymentPanel(props: Props) {
             <div className="grid gap-6 sm:grid-cols-[220px_1fr]">
               {pix.qrCodeBase64 && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={`data:image/png;base64,${pix.qrCodeBase64}`} alt="QR Code PIX" className="mx-auto size-[220px] rounded-xl bg-white p-2" />
+                <img src={`data:image/png;base64,${pix.qrCodeBase64}`} alt="QR Code PIX" className="order-last mx-auto size-[200px] rounded-xl bg-white p-2 sm:order-none sm:size-[220px]" />
               )}
-              <div className="space-y-4">
+              <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-2 text-sm">
                   <Loader2 className="size-4 animate-spin text-accent" />
                   <span className="text-fg">Aguardando pagamento...</span>
@@ -222,13 +222,14 @@ export function PaymentPanel(props: Props) {
                     </span>
                   )}
                 </div>
-                <div>
+                <div className="order-1 sm:order-none">
                   <label className="label" htmlFor="pix-code">PIX copia e cola</label>
                   <textarea id="pix-code" readOnly value={pix.qrCode} rows={4} className="input resize-none font-mono text-xs" onFocus={(e) => e.currentTarget.select()} />
                 </div>
-                <button onClick={copy} className="btn-primary w-full">
+                <button onClick={copy} className="btn-primary w-full py-3.5 text-base sm:py-2.5 sm:text-sm">
                   <Copy className="size-4" /> Copiar código PIX
                 </button>
+                <p className="text-center text-xs text-muted sm:hidden">Pagando pelo celular? Copie o código e cole na opção “PIX Copia e Cola” do app do seu banco.</p>
                 <ol className="list-decimal space-y-1 pl-5 text-xs text-muted">
                   <li>Abra o app do seu banco e escolha pagar com PIX.</li>
                   <li>Escaneie o QR Code ou cole o código.</li>

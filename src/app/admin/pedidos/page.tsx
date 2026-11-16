@@ -7,6 +7,7 @@ import { ORDER_STATUS_LABEL, type Order, type OrderStatus } from "@/types";
 import { AdminHeader, Table } from "@/components/admin/AdminUI";
 import { OrderStatusBadge } from "@/components/account/OrderStatusBadge";
 import { Pagination } from "@/components/catalog/Pagination";
+import { OrderCards } from "@/components/admin/OrderCards";
 
 const PER_PAGE = 30;
 
@@ -36,9 +37,9 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
   return (
     <>
       <AdminHeader title="Pedidos" description={`${count ?? 0} pedido(s)`} />
-      <form className="mb-4 flex flex-wrap gap-2" action="/admin/pedidos">
-        <input name="q" defaultValue={sp.q} placeholder="Nº do pedido ou e-mail" className="input max-w-xs" />
-        <select name="status" defaultValue={sp.status ?? ""} className="input max-w-56">
+      <form className="mb-4 grid grid-cols-[1fr_auto] gap-2 sm:flex sm:flex-wrap" action="/admin/pedidos">
+        <input name="q" defaultValue={sp.q} placeholder="Nº do pedido ou e-mail" className="input col-span-2 sm:max-w-xs" type="search" />
+        <select name="status" defaultValue={sp.status ?? ""} className="input sm:max-w-56">
           <option value="">Todos os status</option>
           {(Object.keys(ORDER_STATUS_LABEL) as OrderStatus[]).map((s) => (
             <option key={s} value={s}>{ORDER_STATUS_LABEL[s]}</option>
@@ -46,6 +47,8 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
         </select>
         <button className="btn-secondary">Filtrar</button>
       </form>
+      <OrderCards orders={orders} />
+      <div className="hidden md:block">
       <Table>
         <thead>
           <tr><th>Pedido</th><th>Cliente</th><th>Criado</th><th>Pagamento</th><th>Status</th><th>Tentativas</th><th className="text-right">Total</th></tr>
@@ -65,6 +68,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
           {!orders.length && <tr><td colSpan={7} className="py-10 text-center text-muted">Nenhum pedido encontrado.</td></tr>}
         </tbody>
       </Table>
+      </div>
       <Pagination page={page} totalPages={Math.ceil((count ?? 0) / PER_PAGE)} buildHref={href} />
     </>
   );

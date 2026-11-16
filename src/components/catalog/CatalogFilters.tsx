@@ -1,7 +1,8 @@
 "use client";
-import { useRef, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, Loader2, SlidersHorizontal } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Props {
   categories: Array<{ slug: string; name: string }>;
@@ -13,6 +14,9 @@ export function CatalogFilters({ categories, values }: Props) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [pending, startTransition] = useTransition();
+  // No celular os filtros começam recolhidos para os jogos aparecerem logo
+  const [open, setOpen] = useState(false);
+  const activeCount = [values.q, values.categoria, values.min, values.max, values.promo, values.indisponiveis, values.sort].filter(Boolean).length;
 
   const apply = () => {
     const form = formRef.current;
@@ -31,16 +35,30 @@ export function CatalogFilters({ categories, values }: Props) {
       action="/jogos"
       onSubmit={(e) => {
         e.preventDefault();
+        setOpen(false);
         apply();
       }}
-      className="card space-y-5 p-5"
+      className={cn("card p-4 sm:p-5", open && "space-y-5", "lg:space-y-5")}
     >
-      <div className="flex items-center justify-between">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-controls="catalog-filters-body"
+        className="flex w-full items-center justify-between gap-2 text-left lg:pointer-events-none"
+      >
         <h2 className="flex items-center gap-2 font-display font-bold text-white">
           <SlidersHorizontal className="size-4 text-accent" /> Filtros
+          {activeCount > 0 && <span className="badge bg-accent text-white">{activeCount}</span>}
         </h2>
-        {pending && <Loader2 className="size-4 animate-spin text-muted" />}
-      </div>
+        {pending ? (
+          <Loader2 className="size-4 animate-spin text-muted" />
+        ) : (
+          <ChevronDown className={cn("size-5 text-muted transition lg:hidden", open && "rotate-180")} />
+        )}
+      </button>
+
+      <div id="catalog-filters-body" className={cn("space-y-5", open ? "block" : "hidden lg:block")}>
 
       {values.colecao && <input type="hidden" name="colecao" value={values.colecao} />}
 
@@ -94,6 +112,7 @@ export function CatalogFilters({ categories, values }: Props) {
       <div className="flex gap-2">
         <button type="submit" className="btn-primary flex-1">Aplicar</button>
         <button type="button" onClick={() => startTransition(() => router.push("/jogos"))} className="btn-ghost">Limpar</button>
+      </div>
       </div>
     </form>
   );

@@ -58,7 +58,7 @@ export function CartView() {
                     <button
                       onClick={() => setQuantity(item.productId, item.quantity - 1)}
                       disabled={item.quantity <= 1}
-                      className="grid size-8 place-items-center text-muted hover:text-fg disabled:opacity-30"
+                      className="grid size-10 place-items-center text-muted hover:text-fg disabled:opacity-30 sm:size-8"
                       aria-label="Diminuir quantidade"
                     >
                       <Minus className="size-3.5" />
@@ -67,7 +67,7 @@ export function CartView() {
                     <button
                       onClick={() => setQuantity(item.productId, Math.min(maxQuantity, item.quantity + 1))}
                       disabled={item.quantity >= maxQuantity}
-                      className="grid size-8 place-items-center text-muted hover:text-fg disabled:opacity-30"
+                      className="grid size-10 place-items-center text-muted hover:text-fg disabled:opacity-30 sm:size-8"
                       aria-label="Aumentar quantidade"
                     >
                       <Plus className="size-3.5" />

@@ -20,7 +20,7 @@ export async function Header() {
   const firstName = profile?.full_name?.split(" ")[0];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-line bg-bg/85 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
       {/* Indicadores de confiança */}
       <div className="hidden border-b border-line/70 bg-surface/60 sm:block">
         <div className="container-page flex h-9 items-center justify-between text-xs text-muted">

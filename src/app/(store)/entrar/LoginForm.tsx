@@ -40,7 +40,7 @@ export function LoginForm({ next, linkError }: { next: string; linkError: boolea
       <div>
         <div className="flex items-center justify-between">
           <label className="label" htmlFor="password">Senha</label>
-          <Link href="/recuperar-senha" className="mb-1.5 text-xs text-accent hover:underline">Esqueci minha senha</Link>
+          <Link href="/recuperar-senha" className="-mb-0.5 -mt-2 py-2 text-xs text-accent hover:underline">Esqueci minha senha</Link>
         </div>
         <input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="input" required />
       </div>
