@@ -33,7 +33,7 @@ export default function ForgotPasswordPage() {
           <FormError message={error} />
           <div>
             <label className="label" htmlFor="email">E-mail</label>
-            <input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input" required />
+            <input id="email" type="email" inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input" required />
           </div>
           <button type="submit" disabled={loading} className="btn-primary w-full py-3">
             {loading && <Loader2 className="size-4 animate-spin" />} Enviar link

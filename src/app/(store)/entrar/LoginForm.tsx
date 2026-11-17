@@ -35,7 +35,7 @@ export function LoginForm({ next, linkError }: { next: string; linkError: boolea
       <FormError message={error} />
       <div>
         <label className="label" htmlFor="email">E-mail</label>
-        <input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input" required />
+        <input id="email" type="email" inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input" required />
       </div>
       <div>
         <div className="flex items-center justify-between">

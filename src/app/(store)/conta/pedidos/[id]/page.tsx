@@ -49,7 +49,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       </div>
 
       {/* Keys */}
-      <section className="card p-6">
+      <section className="card p-4 sm:p-6">
         <h2 className="mb-4 font-display text-lg font-bold text-white">Suas keys</h2>
         {o.status === "delivered" ? (
           <>
@@ -80,7 +80,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       </section>
 
       {/* Itens */}
-      <section className="card p-6">
+      <section className="card p-4 sm:p-6">
         <h2 className="mb-4 font-display text-lg font-bold text-white">Itens</h2>
         <ul className="divide-y divide-line">
           {its.map((i) => (
@@ -106,7 +106,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       </section>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <section className="card p-6">
+        <section className="card p-4 sm:p-6">
           <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-bold text-white"><CreditCard className="size-5 text-accent" /> Pagamentos</h2>
           {!payments?.length ? (
             <p className="text-sm text-muted">Nenhuma tentativa de pagamento.</p>
@@ -128,7 +128,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           )}
         </section>
 
-        <section className="card p-6">
+        <section className="card p-4 sm:p-6">
           <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-bold text-white"><History className="size-5 text-accent" /> Histórico</h2>
           <ol className="relative space-y-4 border-l border-line pl-5">
             {(events ?? []).map((e: { id: number; to_status: OrderStatus; created_at: string }) => (

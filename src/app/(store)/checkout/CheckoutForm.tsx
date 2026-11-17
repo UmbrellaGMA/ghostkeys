@@ -61,12 +61,12 @@ export function CheckoutForm({ email, defaultName }: { email: string; defaultNam
   return (
     <form onSubmit={submit} className="grid gap-6 lg:grid-cols-[1fr_380px]">
       <div className="space-y-6">
-        <section className="card space-y-4 p-6">
+        <section className="card space-y-4 p-4 sm:p-6">
           <h2 className="font-display text-lg font-bold text-white">1. Seus dados</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="label" htmlFor="name">Nome completo</label>
-              <input id="name" value={name} onChange={(e) => setName(e.target.value)} className="input" autoComplete="name" required minLength={3} maxLength={120} />
+              <input id="name" autoCapitalize="words" value={name} onChange={(e) => setName(e.target.value)} className="input" autoComplete="name" required minLength={3} maxLength={120} />
             </div>
             <div>
               <label className="label" htmlFor="email">E-mail</label>
@@ -76,19 +76,19 @@ export function CheckoutForm({ email, defaultName }: { email: string; defaultNam
           </div>
         </section>
 
-        <section className="card space-y-4 p-6">
+        <section className="card space-y-4 p-4 sm:p-6">
           <h2 className="font-display text-lg font-bold text-white">2. Itens</h2>
           <ul className="divide-y divide-line">
             {items.map((i) => {
               const l = lines[i.productId];
               return (
                 <li key={i.productId} className="flex items-center justify-between gap-3 py-3 text-sm">
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-semibold text-fg">{i.name} <span className="text-muted">× {i.quantity}</span></p>
                     <p className="text-xs text-muted">{l?.platform ?? "Steam"} · Região de ativação: <strong className="text-fg">{l?.activation_region ?? "consulte a página do jogo"}</strong></p>
                     {l && !l.available && <p className="text-xs font-semibold text-warning">Indisponível</p>}
                   </div>
-                  <span className="font-semibold text-white">{l?.price_cents ? formatBRL(l.price_cents * i.quantity) : "…"}</span>
+                  <span className="shrink-0 font-semibold text-white">{l?.price_cents ? formatBRL(l.price_cents * i.quantity) : "…"}</span>
                 </li>
               );
             })}
@@ -98,7 +98,7 @@ export function CheckoutForm({ email, defaultName }: { email: string; defaultNam
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Tag className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" />
-                <input id="coupon" value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} className="input pl-9 uppercase" placeholder="CÓDIGO" maxLength={40} />
+                <input id="coupon" autoCapitalize="characters" autoCorrect="off" spellCheck={false} enterKeyHint="done" value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} className="input pl-9 uppercase" placeholder="CÓDIGO" maxLength={40} />
               </div>
               <button type="button" onClick={() => setCouponCode(couponInput.trim() || undefined)} className="btn-secondary">Aplicar</button>
             </div>
@@ -108,13 +108,13 @@ export function CheckoutForm({ email, defaultName }: { email: string; defaultNam
           </div>
         </section>
 
-        <section className="card space-y-3 p-6">
+        <section className="card space-y-3 p-4 sm:p-6">
           <h2 className="font-display text-lg font-bold text-white">3. Pagamento</h2>
           <p className="text-sm text-muted">
             Na próxima etapa você escolhe <strong className="text-fg">PIX</strong> ou <strong className="text-fg">cartão de crédito</strong>. O pagamento é processado com segurança pelo Mercado Pago — não armazenamos dados do seu cartão.
           </p>
-          <label className="flex cursor-pointer items-start gap-3 text-sm text-fg">
-            <input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} className="mt-0.5 size-4 accent-[var(--color-accent)]" />
+          <label className="-mx-2 flex cursor-pointer items-start gap-3 rounded-lg p-2 text-sm text-fg active:bg-surface-2">
+            <input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[var(--color-accent)] sm:size-4" />
             <span>
               Li e aceito os <Link href="/paginas/termos" target="_blank" className="text-accent hover:underline">termos de uso</Link> e a{" "}
               <Link href="/paginas/reembolso" target="_blank" className="text-accent hover:underline">política de reembolso</Link>, e conferi a região de ativação dos jogos.

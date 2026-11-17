@@ -49,11 +49,11 @@ export function SignUpForm({ next }: { next: string }) {
       <FormError message={error} />
       <div>
         <label className="label" htmlFor="fullName">Nome completo</label>
-        <input id="fullName" autoComplete="name" value={form.fullName} onChange={set("fullName")} className="input" required />
+        <input id="fullName" autoComplete="name" autoCapitalize="words" value={form.fullName} onChange={set("fullName")} className="input" required />
       </div>
       <div>
         <label className="label" htmlFor="email">E-mail</label>
-        <input id="email" type="email" autoComplete="email" value={form.email} onChange={set("email")} className="input" required />
+        <input id="email" type="email" inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="email" value={form.email} onChange={set("email")} className="input" required />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>

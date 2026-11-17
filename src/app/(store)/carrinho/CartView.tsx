@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 import { AlertTriangle, Minus, Plus, ShoppingCart, Trash2, Globe2 } from "lucide-react";
 import { useValidatedCart } from "@/hooks/useValidatedCart";
 import { formatBRL } from "@/lib/money";
@@ -10,6 +12,15 @@ import { toast } from "@/components/ui/Toaster";
 
 export function CartView() {
   const { items, lines, maxQuantity, loading, totals, combo, setQuantity, remove } = useValidatedCart();
+  // Barra fixa "Finalizar compra" no celular enquanto o resumo não está na tela
+  const [summaryVisible, setSummaryVisible] = useState(true);
+  useEffect(() => {
+    const el = document.getElementById("cart-summary");
+    if (!el || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(([e]) => setSummaryVisible(e.isIntersecting), { rootMargin: "0px 0px -40px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [items.length]);
 
   if (!items.length) {
     return <EmptyState icon={ShoppingCart} title="Seu carrinho está vazio" description="Explore o catálogo e adicione seus próximos jogos." action={{ label: "Explorar jogos", href: "/jogos" }} />;
@@ -37,7 +48,7 @@ export function CartView() {
                       remove(item.productId);
                       toast("Item removido do carrinho", "info");
                     }}
-                    className="text-subtle transition hover:text-danger"
+                    className="-m-2.5 grid size-10 shrink-0 place-items-center rounded-lg text-subtle transition hover:text-danger"
                     aria-label={`Remover ${item.name}`}
                   >
                     <Trash2 className="size-4" />
@@ -84,7 +95,7 @@ export function CartView() {
         })}
       </ul>
 
-      <aside className="lg:sticky lg:top-40 lg:self-start">
+      <aside id="cart-summary" className="lg:sticky lg:top-40 lg:self-start">
         <OrderSummary
           subtotal={totals.subtotal}
           savings={totals.savings}
@@ -105,6 +116,26 @@ export function CartView() {
           <p className="text-center text-xs text-muted">Cupons podem ser aplicados na próxima etapa.</p>
         </OrderSummary>
       </aside>
+
+      {!totals.hasUnavailable && (
+        <div
+          aria-hidden={summaryVisible}
+          className={cn(
+            "fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-lg transition-transform duration-300 lg:hidden",
+            summaryVisible ? "pointer-events-none translate-y-full" : "translate-y-0",
+          )}
+        >
+          <div className="mx-auto flex max-w-xl items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-muted">Total · {items.reduce((n, i) => n + i.quantity, 0)} jogo(s)</p>
+              <p className="font-display text-lg font-bold text-white">{formatBRL(totals.subtotal - totals.comboCents)}</p>
+            </div>
+            <Link href="/checkout" aria-disabled={loading} className={cn("btn-primary shrink-0 px-6 py-3", loading && "pointer-events-none opacity-60")}>
+              Finalizar compra
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

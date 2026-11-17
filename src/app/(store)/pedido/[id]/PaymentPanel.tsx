@@ -116,7 +116,7 @@ export function PaymentPanel(props: Props) {
   if (status === "delivered") {
     return (
       <div className="space-y-6">
-        <div className="card p-6">
+        <div className="card p-4 sm:p-6">
           <div className="mb-5 flex items-center gap-3">
             <CheckCircle2 className="size-8 shrink-0 text-success" />
             <div>
@@ -127,7 +127,7 @@ export function PaymentPanel(props: Props) {
           <KeyReveal orderId={props.orderId} keyCount={props.keyCount} autoLoad />
         </div>
         {props.tutorials.map((t) => (
-          <div key={t.id} className="card p-6">
+          <div key={t.id} className="card p-4 sm:p-6">
             <ActivationTutorial tutorial={t} />
           </div>
         ))}
@@ -169,7 +169,7 @@ export function PaymentPanel(props: Props) {
   const remaining = pix?.expiresAt ? Math.max(0, new Date(pix.expiresAt).getTime() - now) : null;
 
   return (
-    <div className="card p-6">
+    <div className="card p-4 sm:p-6">
       <div className="mb-6 grid grid-cols-2 gap-2 rounded-xl border border-line bg-surface-2 p-1">
         {props.pixEnabled && (
           <button onClick={() => setMethod("pix")} className={cn("btn", method === "pix" ? "bg-accent text-white" : "text-muted hover:text-fg")}>
@@ -264,7 +264,7 @@ export function PaymentPanel(props: Props) {
 
 function StatusCard({ icon, title, text, children }: { icon: React.ReactNode; title: string; text: string; children?: React.ReactNode }) {
   return (
-    <div className="card flex flex-col items-center gap-4 p-10 text-center">
+    <div className="card flex flex-col items-center gap-4 p-6 text-center sm:p-10">
       {icon}
       <h2 className="font-display text-2xl font-bold text-white">{title}</h2>
       <p className="max-w-md text-sm text-muted">{text}</p>

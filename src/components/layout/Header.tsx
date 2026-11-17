@@ -6,6 +6,8 @@ import { Logo } from "@/components/ui/Logo";
 import { SearchBox } from "./SearchBox";
 import { CartButton } from "./CartButton";
 import { MobileMenu } from "./MobileMenu";
+import { MobileSearch } from "./MobileSearch";
+import { Suspense } from "react";
 
 const NAV = [
   { href: "/jogos", label: "Todos os jogos" },
@@ -38,8 +40,8 @@ export async function Header() {
         </div>
       </div>
 
-      <div className="container-page flex h-[72px] items-center gap-4">
-        <Logo name={settings.store_name} />
+      <div className="container-page flex h-16 items-center gap-3 sm:h-[72px] sm:gap-4">
+        <Logo name={settings.store_name} className="h-6 min-[400px]:h-7 sm:h-9" />
         <SearchBox className="mx-auto hidden w-full max-w-xl md:block" />
         <div className="ml-auto flex items-center gap-2 md:ml-0">
           <Link
@@ -54,6 +56,9 @@ export async function Header() {
               Painel
             </Link>
           )}
+          <Suspense fallback={null}>
+            <MobileSearch />
+          </Suspense>
           <CartButton />
           <MobileMenu links={[{ href: "/", label: "Início" }, ...NAV]} categories={categories} isLoggedIn={Boolean(profile)} />
         </div>

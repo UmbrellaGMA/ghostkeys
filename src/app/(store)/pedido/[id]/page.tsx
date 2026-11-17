@@ -26,7 +26,7 @@ export default async function OrderPaymentPage({ params }: { params: Promise<{ i
   const tutorials = tutorialsForPlatforms(allTutorials, its.map((i) => i.platform));
 
   return (
-    <div className="container-page py-8">
+    <div className="container-page py-6 sm:py-8">
       <div className="mb-6">
         <p className="text-sm text-muted">Pedido #{o.order_number}</p>
         <h1 className="font-display text-3xl font-bold text-white">{o.status === "delivered" ? "Suas keys" : "Pagamento"}</h1>
@@ -44,7 +44,7 @@ export default async function OrderPaymentPage({ params }: { params: Promise<{ i
           keyCount={keyCount}
           tutorials={tutorials}
         />
-        <aside className="card h-fit space-y-4 p-6">
+        <aside className="card h-fit space-y-4 p-4 sm:p-6">
           <h2 className="font-display text-lg font-bold text-white">Seu pedido</h2>
           <ul className="space-y-3 text-sm">
             {its.map((i) => (

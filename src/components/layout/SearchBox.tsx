@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Search } from "lucide-react";
@@ -18,7 +18,10 @@ interface Result {
 }
 
 /** Pesquisa com resultados instantâneos (debounce + cancelamento de requisições antigas). */
-export function SearchBox({ className, autoFocus }: { className?: string; autoFocus?: boolean }) {
+export function SearchBox({ className, autoFocus, onDone }: { className?: string; autoFocus?: boolean; onDone?: () => void }) {
+  const uid = useId();
+  const inputId = `site-search-${uid}`;
+  const listId = `search-results-${uid}`;
   const router = useRouter();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
@@ -62,6 +65,7 @@ export function SearchBox({ className, autoFocus }: { className?: string; autoFo
       router.push(`/jogos?q=${encodeURIComponent(q.trim())}`);
     }
     setOpen(false);
+    onDone?.();
   };
 
   const onKey = (e: React.KeyboardEvent) => {
@@ -81,12 +85,14 @@ export function SearchBox({ className, autoFocus }: { className?: string; autoFo
   return (
     <div ref={boxRef} className={cn("relative", className)}>
       <form onSubmit={submit} role="search">
-        <label htmlFor="site-search" className="sr-only">
+        <label htmlFor={inputId} className="sr-only">
           Buscar jogos
         </label>
         <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-subtle" />
         <input
-          id="site-search"
+          id={inputId}
+          name="q"
+          enterKeyHint="search"
           type="search"
           autoComplete="off"
           autoFocus={autoFocus}
@@ -101,13 +107,13 @@ export function SearchBox({ className, autoFocus }: { className?: string; autoFo
           className="input h-11 rounded-xl pl-10 pr-10"
           role="combobox"
           aria-expanded={showPanel}
-          aria-controls="search-results"
+          aria-controls={listId}
         />
         {loading && <Loader2 className="absolute right-3.5 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted" />}
       </form>
 
       {showPanel && (
-        <div id="search-results" role="listbox" className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-line-strong bg-surface-2 shadow-2xl">
+        <div id={listId} role="listbox" className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-line-strong bg-surface-2 shadow-2xl">
           {results.length === 0 && !loading && <p className="px-4 py-5 text-center text-sm text-muted">Nenhum jogo encontrado para “{debounced}”.</p>}
           {results.map((r, i) => (
             <Link
@@ -115,14 +121,17 @@ export function SearchBox({ className, autoFocus }: { className?: string; autoFo
               href={`/jogos/${r.slug}`}
               role="option"
               aria-selected={i === active}
-              onClick={() => setOpen(false)}
-              className={cn("flex items-center gap-3 px-3 py-2.5 transition hover:bg-surface-3", i === active && "bg-surface-3")}
+              onClick={() => {
+                setOpen(false);
+                onDone?.();
+              }}
+              className={cn("flex items-center gap-3 px-3 py-3 transition hover:bg-surface-3", i === active && "bg-surface-3")}
             >
-              <div className="relative h-10 w-[86px] shrink-0 overflow-hidden rounded-md">
+              <div className="relative h-9 w-[72px] shrink-0 overflow-hidden rounded-md sm:h-10 sm:w-[86px]">
                 <GameImage src={r.image_url} alt="" sizes="86px" />
               </div>
-              <span className="line-clamp-1 flex-1 text-sm text-fg">{r.name}</span>
-              <span className={cn("text-sm font-bold", r.available ? "text-white" : "text-subtle")}>{r.available ? formatBRL(r.price_cents) : "Indisponível"}</span>
+              <span className="line-clamp-2 min-w-0 flex-1 text-sm leading-snug text-fg">{r.name}</span>
+              <span className={cn("shrink-0 whitespace-nowrap text-sm font-bold", r.available ? "text-white" : "text-subtle")}>{r.available ? formatBRL(r.price_cents) : "Indisponível"}</span>
             </Link>
           ))}
           {results.length > 0 && (
