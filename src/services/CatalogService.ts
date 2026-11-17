@@ -96,12 +96,30 @@ export interface CatalogQuery {
   page?: number;
 }
 
+/**
+ * Busca por proximidade no banco (search_products): tolera erros de digitação, acentos,
+ * siglas ("gta", "rdr2") e números romanos ("dark souls 3"). Retorna ids na ordem de relevância.
+ */
+export async function searchProductIds(q: string, limit = 200, includeUnavailable = true): Promise<{ id: string; score: number }[]> {
+  const db = await createPublicClient();
+  const { data, error } = await db.rpc("search_products", { p_query: q.slice(0, 80), p_limit: limit, p_include_unavailable: includeUnavailable });
+  if (error) throw error;
+  return (data ?? []) as { id: string; score: number }[];
+}
+
 export async function listCatalog(query: CatalogQuery): Promise<{ items: CatalogItem[]; total: number; page: number; totalPages: number }> {
   const db = await createPublicClient();
   const page = Math.max(1, query.page ?? 1);
   let req = db.from("catalog_products").select(CARD_FIELDS, { count: "exact" }).eq("nsfw", false);
 
-  if (query.q) req = req.ilike("name", `%${query.q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
+  // Busca por nome: ids vindos da busca por proximidade (ordem = relevância)
+  let relevance: Map<string, number> | null = null;
+  if (query.q) {
+    const hits = await searchProductIds(query.q);
+    if (!hits.length) return { items: [], total: 0, page, totalPages: 0 };
+    relevance = new Map(hits.map((h, i) => [h.id, i]));
+    req = req.in("id", hits.map((h) => h.id));
+  }
   if (query.categoria) {
     const cat = (await getCategories()).find((c) => c.slug === query.categoria);
     if (!cat) return { items: [], total: 0, page, totalPages: 0 };
@@ -135,6 +153,16 @@ export async function listCatalog(query: CatalogQuery): Promise<{ items: Catalog
     default:
       req = req.order("available", { ascending: false }).order("featured", { ascending: false }).order("sales_count", { ascending: false });
   }
+  // Com busca e ordenação por relevância: no máximo 200 resultados, ordenados e paginados aqui
+  if (relevance && sort === "relevancia") {
+    const { data, error } = await req.limit(200);
+    if (error) throw error;
+    const rank = relevance;
+    const all = ((data ?? []) as unknown as CatalogItem[]).sort((a, b) => (rank.get(a.id) ?? 999) - (rank.get(b.id) ?? 999));
+    const total = all.length;
+    return { items: all.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), total, page, totalPages: Math.ceil(total / PAGE_SIZE) };
+  }
+
   req = req.order("id").range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
   const { data, count, error } = await req;

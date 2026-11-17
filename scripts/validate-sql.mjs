@@ -4,11 +4,12 @@
 import { PGlite } from "@electric-sql/pglite";
 import { pgcrypto } from "@electric-sql/pglite/contrib/pgcrypto";
 import { pg_trgm } from "@electric-sql/pglite/contrib/pg_trgm";
+import { fuzzystrmatch } from "@electric-sql/pglite/contrib/fuzzystrmatch";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const root = process.argv[2] ?? process.cwd();
-const db = new PGlite({ extensions: { pgcrypto, pg_trgm } });
+const db = new PGlite({ extensions: { pgcrypto, pg_trgm, fuzzystrmatch } });
 
 const shim = `
 create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
@@ -211,6 +212,16 @@ ok("cliente NÃO edita tutoriais", (await as("authenticated", A, () => err(db.qu
 ok("apenas um tutorial padrão", (await err(db.query(`insert into activation_tutorials(platform,title,is_default) values ('Epic','Epic',true)`))) !== null);
 ok("plataforma única (sem diferenciar maiúsculas)", (await err(db.query(`insert into activation_tutorials(platform,title) values ('steam ','Outro')`))) !== null);
 await db.exec(`insert into activation_tutorials(platform,title,active) values ('GOG','GOG oculto',false)`);
+console.log("Busca por proximidade");
+const search = (role, q) => as(role, role === "anon" ? null : A, async () => (await db.query(`select p.name from search_products($1, 10, true) s join products p on p.id = s.id`, [q])).rows.map((r) => r.name));
+ok("erro de digitação encontra o jogo (\"eldn rign\")", (await search("anon", "eldn rign")).includes("Elden Ring"));
+ok("sigla encontra o jogo (\"er\")", (await search("anon", "er")).includes("Elden Ring"));
+ok("acentos e símbolos ignorados (\"ÉLDEN-RING™\")", (await search("anon", "ÉLDEN-RING™"))[0] === "Elden Ring");
+ok("romanos viram números", (await db.query(`select search_normalize('Dark Souls™ III') v`)).rows[0].v === "dark souls 3");
+ok("produto desativado NÃO aparece na busca do visitante", !(await search("anon", "oculto")).includes("Oculto"));
+ok("letras trocadas encontram o jogo (\"elden rnig\")", (await search("anon", "elden rnig")).includes("Elden Ring"));
+ok("busca curta demais não retorna nada", (await search("anon", "e")).length === 0);
+
 console.log("Notificações push");
 ok("cliente NÃO lê aparelhos inscritos", (await as("authenticated", A, () => err(db.query(`select * from push_subscriptions`)))) !== null);
 ok("admin logado também NÃO lê direto (somente servidor)", (await as("authenticated", C, () => err(db.query(`select * from push_subscriptions`)))) !== null);
