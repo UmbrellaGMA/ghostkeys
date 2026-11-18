@@ -93,6 +93,11 @@ export class EmailService implements Notifier {
     const c = await this.ctx();
     await this.send(order.customer_email, templates.orderRefunded(c, order), c, order.id);
   }
+  /** Aviso de resposta no chat de suporte. Retorna se foi enviado. */
+  async supportReply(email: string, name: string, message: string) {
+    const c = await this.ctx();
+    return this.send(email, templates.supportReply(c, name, message), c);
+  }
   async welcome(email: string, name: string) {
     const c = await this.ctx();
     await this.send(email, templates.welcome(c, name), c);

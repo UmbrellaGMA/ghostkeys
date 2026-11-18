@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Bell, BookOpen, FileText, Gamepad2, Layers, Menu, Package, PlusCircle, Settings, Store, Tag, Users, X } from "lucide-react";
+import { BarChart3, Bell, BookOpen, FileText, Gamepad2, Layers, Menu, MessageCircle, Package, PlusCircle, Settings, Store, Tag, Users, X } from "lucide-react";
 import { LogoMark } from "@/components/ui/Logo";
 import { SignOutButton } from "@/components/account/SignOutButton";
 import { cn } from "@/lib/utils";
@@ -10,8 +10,9 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/admin", label: "Dashboard", short: "Início", icon: BarChart3 },
   { href: "/admin/pedidos", label: "Pedidos", short: "Pedidos", icon: Package },
-  { href: "/admin/notificacoes", label: "Notificações", short: "Avisos", icon: Bell },
+  { href: "/admin/suporte", label: "Suporte", short: "Suporte", icon: MessageCircle },
   { href: "/admin/produtos", label: "Produtos", short: "Produtos", icon: Gamepad2 },
+  { href: "/admin/notificacoes", label: "Notificações", short: "Avisos", icon: Bell },
   { href: "/admin/produtos/importar", label: "Adicionar jogos", icon: PlusCircle },
   { href: "/admin/categorias", label: "Categorias", icon: Layers },
   { href: "/admin/cupons", label: "Cupons", icon: Tag },
@@ -21,6 +22,45 @@ const NAV = [
   { href: "/admin/logs", label: "Logs", icon: FileText },
 ];
 const TABS = NAV.slice(0, 4);
+
+/**
+ * Conversas de suporte aguardando resposta (selo no menu e no ícone do app).
+ * Verifica a cada 20 s com o painel visível.
+ */
+function useSupportUnread() {
+  const [unread, setUnread] = useState(0);
+  const path = usePathname();
+  useEffect(() => {
+    let alive = true;
+    const check = async () => {
+      if (document.visibilityState !== "visible") return;
+      const res = await fetch("/api/admin/support", { cache: "no-store" }).catch(() => null);
+      if (!res?.ok || !alive) return;
+      const { unread: n } = (await res.json()) as { unread: number };
+      setUnread(n);
+      const nav = navigator as Navigator & { setAppBadge?: (n?: number) => Promise<void>; clearAppBadge?: () => Promise<void> };
+      (n ? nav.setAppBadge?.(n) : nav.clearAppBadge?.())?.catch(() => {});
+    };
+    void check();
+    const t = setInterval(check, 20_000);
+    document.addEventListener("visibilitychange", check);
+    return () => {
+      alive = false;
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", check);
+    };
+  }, [path]);
+  return unread;
+}
+
+function Badge({ n, className }: { n: number; className?: string }) {
+  if (!n) return null;
+  return (
+    <span className={cn("grid min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[11px] font-bold leading-5 text-white", className)} aria-label={`${n} não lida(s)`}>
+      {n > 9 ? "9+" : n}
+    </span>
+  );
+}
 
 /** Rota ativa: a mais específica que casa com o caminho atual. */
 function useActive() {
@@ -33,6 +73,7 @@ function useActive() {
 /** Barra lateral (computador). */
 export function AdminSidebar({ email }: { email: string }) {
   const active = useActive();
+  const unread = useSupportUnread();
   return (
     <aside className="hidden border-r border-line bg-surface lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col">
       <div className="flex items-center gap-2.5 px-5 py-5">
@@ -50,6 +91,7 @@ export function AdminSidebar({ email }: { email: string }) {
             )}
           >
             <Icon className={cn("size-4", active === href && "text-accent-2")} /> {label}
+            {href === "/admin/suporte" && <Badge n={unread} className="ml-auto" />}
           </Link>
         ))}
       </nav>
@@ -67,6 +109,7 @@ export function AdminSidebar({ email }: { email: string }) {
 /** Cabeçalho + barra de abas inferior + menu "Mais" (celular / app do iPhone). */
 export function AdminMobileNav({ email }: { email: string }) {
   const active = useActive();
+  const unread = useSupportUnread();
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const current = NAV.find((n) => n.href === active);
@@ -105,7 +148,11 @@ export function AdminMobileNav({ email }: { email: string }) {
                 className={cn("flex h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium", active === href ? "text-accent-2" : "text-muted")}
                 aria-current={active === href ? "page" : undefined}
               >
-                <Icon className="size-5" /> {short}
+                <span className="relative">
+                  <Icon className="size-5" />
+                  {href === "/admin/suporte" && <Badge n={unread} className="absolute -right-3 -top-2" />}
+                </span>
+                {short}
               </Link>
             </li>
           ))}

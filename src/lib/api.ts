@@ -31,3 +31,21 @@ export async function enforceRateLimit(req: Request, bucket: string, limit: numb
   const ok = await rateLimit(`${bucket}:${ip}:${extraKey}`, limit, windowSeconds);
   return ok ? null : jsonError(429, "Muitas requisições. Aguarde alguns instantes.");
 }
+
+/**
+ * Proteção CSRF para rotas que alteram dados com cookie de sessão: exige JSON e mesma origem.
+ * Retorna uma resposta 403 se a requisição vier de outro site.
+ */
+export function rejectCrossSite(req: Request) {
+  if (!(req.headers.get("content-type") ?? "").includes("application/json")) return jsonError(415, "Formato inválido.");
+  const origin = req.headers.get("origin");
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+  if (origin && host) {
+    let same = false;
+    try {
+      same = new URL(origin).host === host;
+    } catch {}
+    if (!same) return jsonError(403, "Origem não permitida.");
+  }
+  return null;
+}

@@ -7,6 +7,7 @@ export const PUSH_EVENTS = [
   { key: "delivery_failed", label: "Falha na entrega", hint: "Precisa da sua ação: reprocessar ou reembolsar" },
   { key: "payment_rejected", label: "Pagamento recusado", hint: "Cartão recusado pelo emissor" },
   { key: "order_refunded", label: "Reembolso", hint: "Pagamento estornado" },
+  { key: "support_message", label: "Mensagem no suporte", hint: "Cliente escreveu no chat da loja" },
 ] as const;
 
 export type PushEventKey = (typeof PUSH_EVENTS)[number]["key"];

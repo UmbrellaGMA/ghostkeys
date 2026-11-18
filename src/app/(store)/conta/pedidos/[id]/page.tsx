@@ -12,6 +12,7 @@ import { ORDER_STATUS_LABEL, type Order, type OrderItem, type OrderStatus, type 
 import { OrderStatusBadge, PAYMENT_STATUS_LABEL } from "@/components/account/OrderStatusBadge";
 import { KeyReveal } from "@/components/account/KeyReveal";
 import { GameImage } from "@/components/product/GameImage";
+import { OpenChatButton } from "@/components/support/OpenChatButton";
 
 export const metadata = { title: "Detalhes do pedido" };
 
@@ -45,7 +46,10 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           <h1 className="font-display text-3xl font-bold text-white">Pedido #{o.order_number}</h1>
           <p className="text-sm text-muted">Realizado em {formatDateTime(o.created_at)}</p>
         </div>
-        <OrderStatusBadge status={o.status} className="px-3 py-1 text-xs" />
+        <div className="flex items-center gap-2">
+          <OrderStatusBadge status={o.status} className="px-3 py-1 text-xs" />
+          <OpenChatButton text={`Pedido #${o.order_number}: `} label="Ajuda com este pedido" className="btn-secondary min-h-9 px-3 py-1.5 text-xs" />
+        </div>
       </div>
 
       {/* Keys */}

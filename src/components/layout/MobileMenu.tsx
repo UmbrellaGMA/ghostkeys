@@ -62,8 +62,8 @@ export function MobileMenu({ links, categories, isLoggedIn }: { links: Array<{ h
             <Link href="/conta/pedidos" className="btn-secondary text-xs">
               <Package className="size-4" /> Meus pedidos
             </Link>
-            <Link href="/paginas/atendimento" className="btn-secondary text-xs">
-              <Headphones className="size-4" /> Atendimento
+            <Link href="/suporte" className="btn-secondary text-xs">
+              <Headphones className="size-4" /> Suporte (chat)
             </Link>
           </div>
           <Link href={isLoggedIn ? "/conta" : "/entrar"} className="btn-primary w-full">

@@ -228,5 +228,29 @@ ok("admin logado também NÃO lê direto (somente servidor)", (await as("authent
 ok("endpoint precisa ser https", (await err(db.query(`insert into push_subscriptions(user_id,endpoint,p256dh,auth) values ('${C}','http://x','a','b')`))) !== null);
 ok("tutorial oculto não aparece para visitante", (await as("anon", null, () => db.query(`select id from activation_tutorials where platform='GOG'`))).rows.length === 0);
 
+console.log("Chat de suporte");
+const conv = (await db.query(`insert into support_conversations(user_id, customer_name, customer_email) values ('${A}', 'Ana', 'ana@t.local') returning id`)).rows[0].id;
+await db.query(`insert into support_messages(conversation_id, sender, body) values ($1, 'customer', $2)`, [conv, "  Olá,\n  minha key   não ativa  "]);
+await db.query(`insert into support_messages(conversation_id, sender, body) values ($1, 'customer', 'alguém?')`, [conv]);
+let cv = (await db.query(`select * from support_conversations where id=$1`, [conv])).rows[0];
+ok("mensagem do cliente soma não lidas do admin", cv.unread_admin === 2 && cv.last_sender === "customer");
+ok("prévia sem quebras/espaços extras", cv.last_message_preview === "alguém?");
+await db.query(`update support_conversations set status='closed' where id=$1`, [conv]);
+await db.query(`insert into support_messages(conversation_id, sender, body) values ($1, 'admin', 'Oi! Vou verificar.')`, [conv]);
+cv = (await db.query(`select * from support_conversations where id=$1`, [conv])).rows[0];
+ok("resposta do admin zera não lidas do admin e soma do cliente", cv.unread_admin === 0 && cv.unread_customer === 1);
+ok("resposta do admin não reabre conversa fechada", cv.status === "closed");
+await db.query(`insert into support_messages(conversation_id, sender, body) values ($1, 'customer', 'obrigado')`, [conv]);
+ok("nova mensagem do cliente reabre a conversa", (await db.query(`select status from support_conversations where id=$1`, [conv])).rows[0].status === "open");
+ok("mensagem vazia é rejeitada", (await err(db.query(`insert into support_messages(conversation_id, sender, body) values ($1, 'customer', '   ')`, [conv]))) !== null);
+ok("mensagem acima de 2000 caracteres é rejeitada", (await err(db.query(`insert into support_messages(conversation_id, sender, body) values ($1, 'customer', $2)`, [conv, "x".repeat(2001)]))) !== null);
+ok("uma conversa por cliente logado", (await err(db.query(`insert into support_conversations(user_id, customer_name, customer_email) values ('${A}', 'Ana', 'ana@t.local')`))) !== null);
+ok("conversa precisa de dono (cliente ou visitante)", (await err(db.query(`insert into support_conversations(customer_name, customer_email) values ('X', 'x@t.local')`))) !== null);
+ok("e-mail inválido é rejeitado", (await err(db.query(`insert into support_conversations(guest_token_hash, customer_name, customer_email) values ($1, 'X', 'nao-e-email')`, ["a".repeat(64)]))) !== null);
+ok("cliente NÃO lê conversas direto", (await as("authenticated", A, () => err(db.query(`select * from support_conversations`)))) !== null);
+ok("visitante NÃO lê mensagens direto", (await as("anon", null, () => err(db.query(`select * from support_messages`)))) !== null);
+ok("cliente NÃO insere mensagem direto", (await as("authenticated", A, () => err(db.query(`insert into support_messages(conversation_id, sender, body) values ('${conv}', 'admin', 'falso')`)))) !== null);
+ok("novo aparelho já recebe avisos de suporte", (await db.query(`select pg_get_expr(adbin, adrelid) d from pg_attrdef where adrelid='public.push_subscriptions'::regclass and adnum=(select attnum from pg_attribute where attrelid='public.push_subscriptions'::regclass and attname='events')`)).rows[0].d.includes("support_message"));
+
 console.log(`\n${pass} passaram, ${fail} falharam`);
 process.exit(fail ? 1 : 0);

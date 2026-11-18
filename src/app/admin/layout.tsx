@@ -21,7 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AdminSidebar email={profile.email} />
       <AdminMobileNav email={profile.email} />
       {/* No celular, espaço inferior para a barra de abas (+ área do indicador do iPhone) */}
-      <main className="min-w-0 p-4 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:p-8 lg:pb-8">{children}</main>
+      <main className="min-w-0 p-4 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:p-8 sm:pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-8">{children}</main>
     </div>
   );
 }

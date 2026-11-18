@@ -30,6 +30,7 @@ export async function Footer() {
         <div>
           <h3 className="mb-3 font-display font-bold text-white">Ajuda</h3>
           <ul className="space-y-2 text-sm text-muted">
+            <li><Link className="hover:text-fg" href="/suporte">Chat de suporte</Link></li>
             <li><Link className="hover:text-fg" href="/paginas/atendimento">Atendimento</Link></li>
             <li><Link className="hover:text-fg" href="/paginas/faq">Perguntas frequentes</Link></li>
             <li><Link className="hover:text-fg" href="/conta/pedidos">Meus pedidos</Link></li>
@@ -39,6 +40,11 @@ export async function Footer() {
         <div>
           <h3 className="mb-3 font-display font-bold text-white">Contato</h3>
           <ul className="space-y-2 text-sm text-muted">
+            <li>
+              <Link className="flex items-center gap-2 hover:text-fg" href="/suporte">
+                <MessageCircle className="size-4" /> Chat de suporte
+              </Link>
+            </li>
             {s.support_email && (
               <li>
                 <a className="flex items-center gap-2 hover:text-fg" href={`mailto:${s.support_email}`}>
@@ -54,8 +60,7 @@ export async function Footer() {
               </li>
             )}
             {s.support_hours && <li>{s.support_hours}</li>}
-            {!s.support_email && !whatsapp && <li>Canais de contato em configuração.</li>}
-          </ul>
+                      </ul>
         </div>
       </div>
       <div className="border-t border-line">

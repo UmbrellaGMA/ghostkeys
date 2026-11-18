@@ -78,7 +78,7 @@ export async function sendAdminPush(event: PushEventKey, msg: PushMessage): Prom
  * Agenda o envio para depois da resposta (a função serverless continua viva até terminar).
  * Fora de uma requisição (ex.: testes), envia na hora.
  */
-function schedule(task: () => Promise<void>): Promise<void> {
+export function schedule(task: () => Promise<void>): Promise<void> {
   const safe = () => task().catch((e) => console.error("[push]", (e as Error).message));
   try {
     after(safe);
@@ -129,6 +129,12 @@ export const pushMessages = {
     body: `${who(o)} · ${formatBRL(o.total_cents)}${reason ? ` · ${reason}` : ""}`,
     url: orderUrl(o),
     tag: `order-${o.id}`,
+  }),
+  supportMessage: (c: { id: string; customer_name: string }, body: string): PushMessage => ({
+    title: `💬 ${c.customer_name.slice(0, 40)} · Suporte`,
+    body: body.replace(/\s+/g, " ").trim().slice(0, 160),
+    url: `/admin/suporte/${c.id}`,
+    tag: `support-${c.id}`,
   }),
   orderRefunded: (o: Order): PushMessage => ({
     title: `↩️ Reembolso · #${o.order_number}`,

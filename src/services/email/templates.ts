@@ -51,6 +51,22 @@ function itemsTable(items: OrderItem[]) {
 const orderUrl = (ctx: TemplateContext, order: Order) => `${ctx.appUrl}/conta/pedidos/${order.id}`;
 
 export const templates = {
+  supportReply(ctx: TemplateContext, name: string, message: string): EmailContent {
+    const quote = `<div style="margin:0 0 16px;padding:14px 16px;border-left:3px solid #8804fa;background:#18181b;border-radius:8px;font-size:15px;line-height:1.6;color:#e6e9f0;white-space:pre-wrap">${esc(message.slice(0, 2000))}</div>`;
+    return {
+      subject: `Nova resposta do suporte · ${ctx.storeName}`,
+      html: layout(ctx, `Olá, ${name || "jogador(a)"}!`, p("Nossa equipe respondeu sua mensagem no chat de suporte:") + quote + p("Para continuar a conversa, abra o chat no site."), {
+        label: "Abrir conversa",
+        url: `${ctx.appUrl}/suporte`,
+      }),
+      text: `Olá, ${name}! Nova resposta do suporte da ${ctx.storeName}:
+
+${message}
+
+Continue a conversa em ${ctx.appUrl}/suporte`,
+    };
+  },
+
   welcome(ctx: TemplateContext, name: string): EmailContent {
     return {
       subject: `Bem-vindo(a) à ${ctx.storeName}!`,
