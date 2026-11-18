@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Bell, BookOpen, FileText, Gamepad2, Layers, Menu, MessageCircle, Package, PlusCircle, Settings, Store, Tag, Users, X } from "lucide-react";
+import { BadgePercent, BarChart3, Bell, BookOpen, FileText, Gamepad2, Layers, Menu, MessageCircle, Package, PlusCircle, Settings, Store, Tag, Users, X } from "lucide-react";
 import { LogoMark } from "@/components/ui/Logo";
 import { SignOutButton } from "@/components/account/SignOutButton";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,7 @@ const NAV = [
   { href: "/admin/produtos/importar", label: "Adicionar jogos", icon: PlusCircle },
   { href: "/admin/categorias", label: "Categorias", icon: Layers },
   { href: "/admin/cupons", label: "Cupons", icon: Tag },
+  { href: "/admin/afiliados", label: "Afiliados", icon: BadgePercent },
   { href: "/admin/tutoriais", label: "Tutoriais de ativação", icon: BookOpen },
   { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/configuracoes", label: "Configurações", icon: Settings },

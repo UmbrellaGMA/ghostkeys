@@ -26,6 +26,9 @@ function fromCoupon(c?: Coupon | null) {
     max_uses: c?.max_uses ? String(c.max_uses) : "",
     max_uses_per_user: c?.max_uses_per_user ? String(c.max_uses_per_user) : "",
     expires_at: isoToLocalInput(c?.expires_at ?? null),
+    affiliate: Boolean(c?.commission_percent),
+    affiliate_name: c?.affiliate_name ?? "",
+    commission: c?.commission_percent ? Number(c.commission_percent).toLocaleString("pt-BR") : "",
   };
 }
 
@@ -41,6 +44,9 @@ export function CouponForm({ coupon, onDone }: { coupon?: Coupon | null; onDone?
     const value = f.discount_type === "percent" ? Number(f.value.replace(",", ".")) : parseBRLInput(f.value);
     if (!value || value <= 0) return toast(f.discount_type === "percent" ? "Informe o percentual de desconto" : "Informe o valor do desconto", "error");
     if (f.min && parseBRLInput(f.min) === null) return toast("Valor mínimo inválido", "error");
+    const commission = f.affiliate ? Number(f.commission.replace(",", ".")) : null;
+    if (f.affiliate && !f.affiliate_name.trim()) return toast("Informe o nome do afiliado", "error");
+    if (commission !== null && !(commission > 0 && commission <= 100)) return toast("Comissão deve ser entre 0,01% e 100%", "error");
     start(async () => {
       const r = await saveCouponAction(coupon?.id ?? null, {
         code: f.code,
@@ -52,6 +58,8 @@ export function CouponForm({ coupon, onDone }: { coupon?: Coupon | null; onDone?
         // Converte no navegador: o horário digitado é o do seu fuso (o servidor roda em UTC)
         expires_at: f.expires_at ? new Date(f.expires_at).toISOString() : null,
         active: coupon?.active ?? true,
+        affiliate_name: f.affiliate ? f.affiliate_name.trim() : null,
+        commission_percent: commission,
       });
       toast(r.message, r.ok ? "success" : "error");
       if (r.ok) {
@@ -110,6 +118,27 @@ export function CouponForm({ coupon, onDone }: { coupon?: Coupon | null; onDone?
         <button disabled={pending} className="btn-primary col-span-2 sm:col-span-4 lg:col-span-1">
           {pending ? <Loader2 className="size-4 animate-spin" /> : editing ? <Save className="size-4" /> : <Plus className="size-4" />} {editing ? "Salvar" : "Criar"}
         </button>
+      </div>
+      <div className="mt-3 rounded-xl border border-line bg-surface-2/50 p-3">
+        <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-fg">
+          <input type="checkbox" className="size-4 accent-[var(--color-accent)]" checked={f.affiliate} onChange={(e) => setF({ ...f, affiliate: e.target.checked })} />
+          Cupom de afiliado (paga comissão ao dono do cupom)
+        </label>
+        {f.affiliate && (
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-[1fr_160px]">
+            <div className="col-span-2 sm:col-span-1">
+              <label className="label">Nome do afiliado</label>
+              <input className="input" value={f.affiliate_name} onChange={(e) => setF({ ...f, affiliate_name: e.target.value })} maxLength={80} placeholder="Ex.: João Streamer" required />
+            </div>
+            <div className="col-span-2 sm:col-span-1">
+              <label className="label">Comissão %</label>
+              <input className="input" inputMode="decimal" value={f.commission} onChange={(e) => setF({ ...f, commission: e.target.value })} placeholder="Ex.: 10" required />
+            </div>
+            <p className="col-span-2 text-xs text-subtle">
+              A comissão é calculada sobre o valor pago em cada venda com o cupom (já com o desconto). Acompanhe em Painel › Afiliados.
+            </p>
+          </div>
+        )}
       </div>
       <p className="mt-2 text-xs text-subtle">
         Deixe em branco para não limitar. &quot;Por pessoa&quot; conta pedidos pagos ou aguardando pagamento; cancelados e PIX expirados não contam.

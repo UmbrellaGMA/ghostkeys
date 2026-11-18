@@ -269,5 +269,25 @@ ok("contagem por cliente ignora pedidos cancelados", (await db.query(`select cou
 ok("cliente NÃO consulta usos de cupom direto", (await as("authenticated", B, () => err(db.query(`select coupon_uses_by_user('${cup}','${B}')`)))) !== null);
 ok("limite por cliente precisa ser >= 1", (await err(db.query(`update coupons set max_uses_per_user = 0 where id=$1`, [cup]))) !== null);
 
+console.log("Cupom de afiliado");
+const aff = (await db.query(`insert into coupons(code, discount_type, discount_value, affiliate_name, commission_percent, affiliate_token) values ('JOAO10', 'percent', 10, 'João', 15, $1) returning id`, ["t".repeat(32)])).rows[0].id;
+const affOrder = (commission) => db.query(`select create_order_with_items($1::jsonb,$2::jsonb) id`, [
+  JSON.stringify({ user_id: A, customer_name: "X", customer_email: "x@t.local", subtotal_cents: 3000, discount_cents: 300, total_cents: 2700, coupon_id: aff, coupon_code: "JOAO10", affiliate_commission_percent: commission, expires_at: new Date(Date.now() + 1e6).toISOString() }),
+  JSON.stringify([{ product_name: "A", supplier_product_id: "1", supplier_cost_cents: 300, unit_price_cents: 3000, quantity: 1 }]),
+]);
+const ao = (await affOrder(99)).rows[0].id;
+ok("% de comissão gravado no pedido vem do cupom (ignora valor enviado)", Number((await db.query(`select affiliate_commission_percent p from orders where id=$1`, [ao])).rows[0].p) === 15);
+await db.query(`update coupons set commission_percent = 30 where id=$1`, [aff]);
+ok("mudar o % do cupom não altera pedido já criado", Number((await db.query(`select affiliate_commission_percent p from orders where id=$1`, [ao])).rows[0].p) === 15);
+ok("% de comissão do pedido é imutável", (await err(db.query(`update orders set affiliate_commission_percent = 50 where id=$1`, [ao])))?.includes("imutável"));
+ok("pedido sem cupom não tem comissão", (await db.query(`select affiliate_commission_percent p from orders where id=$1`, [oc])).rows[0].p === null);
+ok("comissão exige nome do afiliado", (await err(db.query(`insert into coupons(code, discount_type, discount_value, commission_percent) values ('SEMNOME', 'percent', 5, 10)`))) !== null);
+ok("comissão acima de 100% é rejeitada", (await err(db.query(`update coupons set commission_percent = 101 where id=$1`, [aff]))) !== null);
+ok("pagamento de comissão só em segunda-feira", (await err(db.query(`insert into affiliate_payouts(coupon_id, week_start, amount_cents) values ($1, '2026-11-18', 100)`, [aff]))) !== null);
+await db.query(`insert into affiliate_payouts(coupon_id, week_start, amount_cents) values ($1, '2026-11-16', 100)`, [aff]);
+ok("uma baixa de comissão por semana", (await err(db.query(`insert into affiliate_payouts(coupon_id, week_start, amount_cents) values ($1, '2026-11-16', 100)`, [aff]))) !== null);
+ok("cliente NÃO lê comissões pagas", (await as("authenticated", A, () => err(db.query(`select * from affiliate_payouts`)))) !== null);
+ok("cliente NÃO lê cupons (nem o link do afiliado)", (await as("authenticated", A, () => db.query(`select affiliate_token from coupons`).then((r) => r.rows.length, () => 0))) === 0);
+
 console.log(`\n${pass} passaram, ${fail} falharam`);
 process.exit(fail ? 1 : 0);

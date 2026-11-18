@@ -10,6 +10,10 @@ import { CheckoutError } from "@/services/OrderService";
 import { calculateSalePrice } from "@/services/PricingService";
 import type { StoreSettings } from "@/types";
 import { z } from "zod";
+import { randomBytes } from "node:crypto";
+import { formatBRL } from "@/lib/money";
+import { parseWeek } from "@/lib/weeks";
+import { getAffiliateCoupon, markWeekPaid, unmarkWeekPaid } from "@/services/AffiliateService";
 import { PUSH_EVENT_KEYS, type PushEventKey } from "@/lib/push-events";
 import { pushConfigured, sendToSubscriptions } from "@/services/push/AdminPushNotifier";
 
@@ -235,11 +239,23 @@ export async function saveCouponAction(id: string | null, input: unknown): Promi
   return run(async () => {
     const data = couponSchema.parse(input);
     if (data.discount_type === "percent" && data.discount_value > 100) throw new Error("Percentual máximo: 100");
-    const row = { ...data, expires_at: data.expires_at ? new Date(data.expires_at).toISOString() : null };
+    if (data.commission_percent !== null && !data.affiliate_name) throw new Error("Informe o nome do afiliado.");
+    const isAffiliate = data.commission_percent !== null;
+    const row: Record<string, unknown> = {
+      ...data,
+      affiliate_name: isAffiliate ? data.affiliate_name : null,
+      expires_at: data.expires_at ? new Date(data.expires_at).toISOString() : null,
+    };
     const db = createAdminClient();
+    // Link privado do afiliado: criado na primeira vez que o cupom vira de afiliado
+    if (isAffiliate) {
+      const current = id ? (await db.from("coupons").select("affiliate_token").eq("id", id).maybeSingle()).data : null;
+      if (!current?.affiliate_token) row.affiliate_token = randomBytes(24).toString("base64url");
+    }
     const { error } = id ? await db.from("coupons").update(row).eq("id", id) : await db.from("coupons").insert(row);
     if (error) throw new Error(error.code === "23505" ? "Código já existe" : error.message);
     revalidatePath("/admin/cupons");
+    revalidatePath("/admin/afiliados", "layout");
     return id ? "Cupom atualizado" : "Cupom criado";
   });
 }
@@ -249,6 +265,42 @@ export async function toggleCouponAction(id: string, active: boolean): Promise<A
     await createAdminClient().from("coupons").update({ active }).eq("id", id);
     revalidatePath("/admin/cupons");
     return active ? "Cupom ativado" : "Cupom desativado";
+  });
+}
+
+// ───────────────────────── Afiliados ─────────────────────────
+
+const weekSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+export async function markAffiliateWeekPaidAction(couponId: string, weekStart: string): Promise<ActionResult> {
+  return run(async (adminId) => {
+    const coupon = await getAffiliateCoupon(z.string().uuid().parse(couponId));
+    if (!coupon) throw new Error("Cupom de afiliado não encontrado.");
+    const amount = await markWeekPaid(coupon, parseWeek(weekSchema.parse(weekStart)), adminId);
+    revalidatePath("/admin/afiliados", "layout");
+    return `Comissão de ${formatBRL(amount)} marcada como paga.`;
+  });
+}
+
+export async function unmarkAffiliateWeekPaidAction(couponId: string, weekStart: string): Promise<ActionResult> {
+  return run(async () => {
+    await unmarkWeekPaid(z.string().uuid().parse(couponId), parseWeek(weekSchema.parse(weekStart)));
+    revalidatePath("/admin/afiliados", "layout");
+    return "Pagamento desfeito.";
+  });
+}
+
+/** Gera um novo link privado (o anterior para de funcionar). */
+export async function regenerateAffiliateLinkAction(couponId: string): Promise<ActionResult> {
+  return run(async () => {
+    const { error } = await createAdminClient()
+      .from("coupons")
+      .update({ affiliate_token: randomBytes(24).toString("base64url") })
+      .eq("id", z.string().uuid().parse(couponId))
+      .not("commission_percent", "is", null);
+    if (error) throw error;
+    revalidatePath("/admin/afiliados", "layout");
+    return "Novo link gerado. O link antigo não funciona mais.";
   });
 }
 

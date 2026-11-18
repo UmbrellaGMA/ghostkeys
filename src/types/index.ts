@@ -185,6 +185,10 @@ export interface Coupon {
   max_uses: number | null;
   /** Quantas vezes cada cliente pode usar (null = sem limite por cliente). */
   max_uses_per_user: number | null;
+  /** Cupom de afiliado: dono e % de comissão sobre o valor pago (null = cupom comum). */
+  affiliate_name: string | null;
+  commission_percent: number | null;
+  affiliate_token: string | null;
   used_count: number;
   expires_at: string | null;
   active: boolean;

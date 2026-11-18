@@ -45,7 +45,14 @@ export function CouponsManager({ coupons }: { coupons: Coupon[] }) {
               const expired = Boolean(c.expires_at && new Date(c.expires_at) <= new Date());
               return (
                 <tr key={c.id} className={editing?.id === c.id ? "bg-accent/10" : undefined}>
-                  <td className="font-mono font-semibold text-white">{c.code}</td>
+                  <td>
+                    <span className="font-mono font-semibold text-white">{c.code}</span>
+                    {c.commission_percent && (
+                      <span className="mt-0.5 block text-xs text-accent-2">
+                        Afiliado: {c.affiliate_name} · {Number(c.commission_percent).toLocaleString("pt-BR")}%
+                      </span>
+                    )}
+                  </td>
                   <td>{c.discount_type === "percent" ? `${c.discount_value}%` : formatBRL(c.discount_value)}</td>
                   <td>{c.min_order_cents ? formatBRL(c.min_order_cents) : "—"}</td>
                   <td>

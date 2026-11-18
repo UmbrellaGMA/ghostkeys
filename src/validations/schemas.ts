@@ -159,6 +159,8 @@ export const couponSchema = z.object({
   min_order_cents: centsField,
   max_uses: z.coerce.number().int().min(1).nullable(),
   max_uses_per_user: z.coerce.number().int().min(1).max(1000).nullable().default(null),
+  affiliate_name: z.string().trim().min(1).max(80).nullable().default(null),
+  commission_percent: z.coerce.number().gt(0, "Comissão deve ser maior que 0").max(100, "Comissão máxima: 100%").transform((v) => Math.round(v * 100) / 100).nullable().default(null),
   expires_at: z.string().nullable(),
   active: z.boolean(),
 });
