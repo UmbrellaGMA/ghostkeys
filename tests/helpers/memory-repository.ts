@@ -42,6 +42,17 @@ export class MemoryRepository implements StoreRepository {
     return [...this.coupons.values()].find((c) => c.code === code.toUpperCase()) ?? null;
   }
 
+  async countCouponUsesByUser(couponId: string, userId: string) {
+    const now = Date.now();
+    return [...this.orders.values()].filter(
+      (o) =>
+        o.coupon_id === couponId &&
+        o.user_id === userId &&
+        (["paid", "processing", "delivered", "delivery_failed"].includes(o.status) ||
+          (o.status === "pending_payment" && (!o.expires_at || Date.parse(o.expires_at) > now))),
+    ).length;
+  }
+
   async createOrder(draft: OrderDraft) {
     const id = randomUUID();
     const now = new Date().toISOString();

@@ -68,6 +68,8 @@ export interface StoreRepository {
   getProductsByIds(ids: string[]): Promise<Product[]>;
   updateProduct(id: string, patch: Partial<Product>): Promise<void>;
   getCouponByCode(code: string): Promise<Coupon | null>;
+  /** Usos do cupom pelo cliente (pedidos pagos/entregues ou aguardando pagamento no prazo). */
+  countCouponUsesByUser(couponId: string, userId: string): Promise<number>;
 
   createOrder(draft: OrderDraft): Promise<string>;
   getOrder(id: string): Promise<Order | null>;

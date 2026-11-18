@@ -7,6 +7,8 @@ import { comboDiscount, couponDiscount, effectivePrice, type ComboConfig } from 
 import type { DeliveryService } from "@/services/DeliveryService";
 import { MercadoPagoError, type MPPayment, type MercadoPagoService } from "@/services/mercadopago/MercadoPagoService";
 
+export const COUPON_USER_LIMIT_MESSAGE = "Você já usou este cupom o número máximo de vezes permitido.";
+
 export class CheckoutError extends Error {
   constructor(
     message: string,
@@ -170,6 +172,12 @@ export class OrderService {
     const coupon = input.couponCode ? await repo.getCouponByCode(input.couponCode) : null;
 
     const draft = buildOrderDraft({ user: input.user, lines: input.lines, products, settings, coupon, couponCode: input.couponCode });
+
+    // Limite de usos do cupom por cliente (o banco também valida, com trava, ao gravar o pedido)
+    if (draft.coupon_id && coupon?.max_uses_per_user) {
+      const used = await repo.countCouponUsesByUser(draft.coupon_id, input.user.id);
+      if (used >= coupon.max_uses_per_user) throw new CheckoutError(COUPON_USER_LIMIT_MESSAGE, "COUPON_USER_LIMIT");
+    }
 
     // Revalida o custo diretamente na ShadowKeys (protege contra preço desatualizado)
     if (this.deps.priceChecker) await this.revalidateWithSupplier(draft, products, settings);

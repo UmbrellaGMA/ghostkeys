@@ -54,7 +54,7 @@ describe("Criação de pedidos (buildOrderDraft)", () => {
 
   it("aplica cupom válido e rejeita expirado/esgotado", () => {
     const p = repo.addProduct();
-    const coupon: Coupon = { id: randomUUID(), code: "DEZ", discount_type: "percent", discount_value: 10, min_order_cents: 0, max_uses: 1, used_count: 0, expires_at: null, active: true };
+    const coupon: Coupon = { id: randomUUID(), code: "DEZ", discount_type: "percent", discount_value: 10, min_order_cents: 0, max_uses: 1, max_uses_per_user: null, used_count: 0, expires_at: null, active: true };
     const d = buildOrderDraft({ user, lines: [{ productId: p.id, quantity: 1 }], products: [p], settings: defaultSettings(), coupon, couponCode: "DEZ" });
     expect(d.discount_cents).toBe(260);
     expect(d.total_cents).toBe(2340);
@@ -113,5 +113,21 @@ describe("OrderService.createOrder", () => {
     });
     await expect(service.createOrder({ user, lines: [{ productId: p.id, quantity: 1 }] })).rejects.toBeInstanceOf(CheckoutError);
     expect(repo.products.get(p.id)!.available).toBe(false);
+  });
+});
+
+describe("Cupom com limite por cliente", () => {
+  it("bloqueia o cliente que já usou o cupom o máximo de vezes; outro cliente pode usar", async () => {
+    const repo = new MemoryRepository();
+    const p = repo.addProduct();
+    const coupon: Coupon = { id: randomUUID(), code: "UMAVEZ", discount_type: "percent", discount_value: 10, min_order_cents: 0, max_uses: null, max_uses_per_user: 1, used_count: 0, expires_at: null, active: true };
+    repo.coupons.set(coupon.id, coupon);
+    const service = new OrderService({ repo, notifier: recordingNotifier().notifier });
+
+    await service.createOrder({ user, lines: [{ productId: p.id, quantity: 1 }], couponCode: "umavez" });
+    await expect(service.createOrder({ user, lines: [{ productId: p.id, quantity: 1 }], couponCode: "UMAVEZ" })).rejects.toMatchObject({ code: "COUPON_USER_LIMIT" });
+
+    const other = { ...user, id: randomUUID(), email: "outro@example.com" };
+    await expect(service.createOrder({ user: other, lines: [{ productId: p.id, quantity: 1 }], couponCode: "UMAVEZ" })).resolves.toHaveProperty("orderId");
   });
 });

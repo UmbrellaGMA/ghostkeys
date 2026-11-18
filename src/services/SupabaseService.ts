@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { redact } from "@/lib/utils";
+import { CheckoutError, COUPON_USER_LIMIT_MESSAGE } from "@/services/OrderService";
 import type { Coupon, Order, OrderStatus, Payment, Product, StoreSettings } from "@/types";
 import type { ApiLogEntry, ApiLogger } from "@/services/shadowkeys/ShadowKeysService";
 import type {
@@ -53,9 +54,16 @@ export class SupabaseRepository implements StoreRepository, ApiLogger {
     return (data as Coupon) ?? null;
   }
 
+  async countCouponUsesByUser(couponId: string, userId: string): Promise<number> {
+    const { data, error } = await this.db.rpc("coupon_uses_by_user", { p_coupon_id: couponId, p_user_id: userId });
+    if (error) throw error;
+    return Number(data ?? 0);
+  }
+
   async createOrder(draft: OrderDraft): Promise<string> {
     const { items, ...order } = draft;
     const { data, error } = await this.db.rpc("create_order_with_items", { p_order: order, p_items: items });
+    if (error?.message?.includes("COUPON_USER_LIMIT")) throw new CheckoutError(COUPON_USER_LIMIT_MESSAGE, "COUPON_USER_LIMIT");
     if (error) throw error;
     return data as string;
   }

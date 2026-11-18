@@ -252,5 +252,22 @@ ok("visitante NÃO lê mensagens direto", (await as("anon", null, () => err(db.q
 ok("cliente NÃO insere mensagem direto", (await as("authenticated", A, () => err(db.query(`insert into support_messages(conversation_id, sender, body) values ('${conv}', 'admin', 'falso')`)))) !== null);
 ok("novo aparelho já recebe avisos de suporte", (await db.query(`select pg_get_expr(adbin, adrelid) d from pg_attrdef where adrelid='public.push_subscriptions'::regclass and adnum=(select attnum from pg_attribute where attrelid='public.push_subscriptions'::regclass and attname='events')`)).rows[0].d.includes("support_message"));
 
+console.log("Cupom: limite por cliente");
+const cup = (await db.query(`insert into coupons(code, discount_type, discount_value, max_uses_per_user) values ('UMAVEZ', 'percent', 10, 1) returning id`)).rows[0].id;
+const orderWithCoupon = (user, expiresInMs = 1e6) => db.query(`select create_order_with_items($1::jsonb,$2::jsonb) id`, [
+  JSON.stringify({ user_id: user, customer_name: "X", customer_email: "x@t.local", subtotal_cents: 3000, discount_cents: 300, total_cents: 2700, coupon_id: cup, coupon_code: "UMAVEZ", expires_at: new Date(Date.now() + expiresInMs).toISOString() }),
+  JSON.stringify([{ product_name: "A", supplier_product_id: "1", supplier_cost_cents: 300, unit_price_cents: 3000, quantity: 1 }]),
+]);
+const o1 = (await orderWithCoupon(B)).rows[0].id;
+ok("primeiro uso do cupom é aceito", Boolean(o1));
+ok("segundo uso pelo mesmo cliente é bloqueado no banco", (await err(orderWithCoupon(B)))?.includes("COUPON_USER_LIMIT"));
+ok("outro cliente ainda pode usar", Boolean((await orderWithCoupon(A)).rows[0].id));
+await db.query(`update orders set status='cancelled', cancelled_at=now() where id=$1`, [o1]);
+ok("pedido cancelado devolve o uso ao cliente", Boolean((await orderWithCoupon(B)).rows[0].id));
+await db.query(`update coupons set max_uses_per_user = 3 where id=$1`, [cup]);
+ok("contagem por cliente ignora pedidos cancelados", (await db.query(`select coupon_uses_by_user($1,$2) n`, [cup, B])).rows[0].n === 1);
+ok("cliente NÃO consulta usos de cupom direto", (await as("authenticated", B, () => err(db.query(`select coupon_uses_by_user('${cup}','${B}')`)))) !== null);
+ok("limite por cliente precisa ser >= 1", (await err(db.query(`update coupons set max_uses_per_user = 0 where id=$1`, [cup]))) !== null);
+
 console.log(`\n${pass} passaram, ${fail} falharam`);
 process.exit(fail ? 1 : 0);

@@ -4,6 +4,8 @@ import { enforceRateLimit, handleApiError } from "@/lib/api";
 import { cartValidateSchema } from "@/validations/schemas";
 import { effectivePrice, listPrice } from "@/services/PricingService";
 import { getRepository } from "@/services/container";
+import { getCurrentUser } from "@/lib/auth";
+import { COUPON_USER_LIMIT_MESSAGE } from "@/services/OrderService";
 import type { Product, StoreSettings } from "@/types";
 
 /** Devolve preços e disponibilidade ATUAIS dos itens do carrinho (o carrinho local nunca define preço). */
@@ -19,9 +21,17 @@ export async function POST(req: NextRequest) {
     if (couponCode?.trim()) {
       const c = await getRepository().getCouponByCode(couponCode).catch(() => null);
       const valid = c && c.active && (!c.expires_at || new Date(c.expires_at) > new Date()) && (c.max_uses === null || c.used_count < c.max_uses);
-      coupon = valid
-        ? { code: c.code, discount_type: c.discount_type, discount_value: c.discount_value, min_order_cents: c.min_order_cents }
-        : { error: "Cupom inválido ou expirado" };
+      // Limite por cliente: avisa já no carrinho (o pedido valida de novo ao ser criado)
+      let overLimit = false;
+      if (valid && c.max_uses_per_user) {
+        const u = await getCurrentUser().catch(() => null);
+        if (u) overLimit = (await getRepository().countCouponUsesByUser(c.id, u.id).catch(() => 0)) >= c.max_uses_per_user;
+      }
+      coupon = !valid
+        ? { error: "Cupom inválido ou expirado" }
+        : overLimit
+          ? { error: COUPON_USER_LIMIT_MESSAGE }
+          : { code: c.code, discount_type: c.discount_type, discount_value: c.discount_value, min_order_cents: c.min_order_cents };
     }
 
     const supabase = await createPublicClient();

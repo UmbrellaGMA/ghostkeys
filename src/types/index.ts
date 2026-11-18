@@ -183,6 +183,8 @@ export interface Coupon {
   discount_value: number;
   min_order_cents: number;
   max_uses: number | null;
+  /** Quantas vezes cada cliente pode usar (null = sem limite por cliente). */
+  max_uses_per_user: number | null;
   used_count: number;
   expires_at: string | null;
   active: boolean;

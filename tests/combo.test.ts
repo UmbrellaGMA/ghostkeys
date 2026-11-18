@@ -65,7 +65,7 @@ describe("Promoção Leve 3, pague 2", () => {
   it("cupom é aplicado sobre o valor já com o combo", () => {
     const repo = new MemoryRepository();
     const ps = [3000, 3000, 3000].map((p) => repo.addProduct({ sale_price_cents: p, supplier_cost_cents: 300 }));
-    const coupon: Coupon = { id: randomUUID(), code: "DEZ", discount_type: "percent", discount_value: 10, min_order_cents: 0, max_uses: null, used_count: 0, expires_at: null, active: true };
+    const coupon: Coupon = { id: randomUUID(), code: "DEZ", discount_type: "percent", discount_value: 10, min_order_cents: 0, max_uses: null, max_uses_per_user: null, used_count: 0, expires_at: null, active: true };
     const d = buildOrderDraft({ user, lines: ps.map((p) => ({ productId: p.id, quantity: 1 })), products: ps, settings: { ...defaultSettings(), ...cfg }, coupon, couponCode: "DEZ" });
     expect(d.combo_discount_cents).toBe(3000);
     expect(d.discount_cents).toBe(3000 + 600);

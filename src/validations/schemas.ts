@@ -158,6 +158,7 @@ export const couponSchema = z.object({
   discount_value: z.coerce.number().int().min(1),
   min_order_cents: centsField,
   max_uses: z.coerce.number().int().min(1).nullable(),
+  max_uses_per_user: z.coerce.number().int().min(1).max(1000).nullable().default(null),
   expires_at: z.string().nullable(),
   active: z.boolean(),
 });
