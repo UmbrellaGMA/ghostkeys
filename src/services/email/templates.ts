@@ -25,7 +25,7 @@ function layout(ctx: TemplateContext, title: string, body: string, cta?: { label
 <body style="margin:0;background:#09090b;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e6e9f0">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#09090b;padding:24px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#121214;border:1px solid #26262b;border-radius:14px;overflow:hidden">
-<tr><td style="padding:20px 28px;border-bottom:1px solid #26262b;font-size:20px;font-weight:800;color:#fff">${esc(ctx.storeName)}<span style="color:#8804fa">.</span></td></tr>
+<tr><td style="padding:20px 28px;border-bottom:1px solid #26262b;font-size:20px;font-weight:800;color:#fff"><a href="${esc(ctx.appUrl)}" style="text-decoration:none;color:#fff"><img src="${esc(ctx.appUrl)}/email/logo.png" width="200" height="31" alt="${esc(ctx.storeName)}" style="display:block;border:0;outline:none;width:200px;height:auto;color:#fff;font-size:20px;font-weight:800"></a></td></tr>
 <tr><td style="padding:28px">
 <h1 style="margin:0 0 16px;font-size:22px;color:#fff">${esc(title)}</h1>
 ${body}
